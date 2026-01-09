@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tavern Guild Master - Early Access</title>
+    <!-- Importing a fantasy font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:ital,wght@0,400;0,700;1,400&family=MedievalSharp&display=swap');
+
+        :root {
+            /* Palette from Visual Style Guide */
+            --bg-dark: #0d0806;
+            --bg-card: #2a1f1a;
+            --parchment: #f5e6d3;
+            --parchment-dark: #d4b896;
+            --gold: #FFD700;
+            --gold-dark: #b8960a;
+            --ink: #2c1810;
+            --wood-dark: #3e2723;
+            --wood-light: #5d4037;
+            --green: #4CAF50;
+            --red: #8b0000;
+
+            --font-main: 'Lato', serif;
+            --font-display: 'MedievalSharp', cursive;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            /* Prevent scroll on body, handle inside containers */
+        }
+
+        /* --- LAYOUT UTILITIES --- */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            background: var(--bg-dark);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .header-bar {
+            background: linear-gradient(to bottom, #1a1a1a, #0d0806);
+            border-bottom: 2px solid var(--gold-dark);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--parchment);
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            z-index: 100;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* --- THEME: WOOD & PARCHMENT --- */
+        .wood-bg {
+            background:
+                linear-gradient(90deg, rgba(62, 39, 35, 0.3) 1px, transparent 1px),
+                linear-gradient(rgba(62, 39, 35, 0.3) 1px, transparent 1px),
+                linear-gradient(135deg, #3e2723 0%, #4e342e 100%);
+            background-size: 20px 20px, 20px 20px, 100% 100%;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        /* The Signature Quest Scroll Style */
+        .quest-scroll {
+            width: 280px;
+            height: 380px;
+            margin: 10px;
+            position: relative;
+            /* Parchment Texture */
+            background:
+                repeating-linear-gradient(0deg, rgba(139, 115, 85, 0.15) 0px, transparent 1px, transparent 2px),
+                linear-gradient(to bottom, #e8d5ba 0%, #d4b896 50%, #e8d5ba 100%);
+            color: var(--ink);
+            border-left: 5px solid #6d4c41;
+            border-right: 5px solid #6d4c41;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            padding: 40px 20px;
+            box-sizing: border-box;
+            font-family: var(--font-main);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        /* Rolled Edges using Pseudo-elements */
+        .quest-scroll::before,
+        .quest-scroll::after {
+            content: "";
+            position: absolute;
+            left: -5px;
+            right: -5px;
+            height: 20px;
+            background: linear-gradient(to right, #3e2723, #5d4037, #3e2723);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        .quest-scroll::before {
+            top: -10px;
+        }
+
+        .quest-scroll::after {
+            bottom: -10px;
+        }
+
+        .quest-scroll:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .quest-scroll h3 {
+            font-family: var(--font-display);
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--ink);
+            font-size: 1.4rem;
+        }
+
+        .rank-badge {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+            font-family: var(--font-display);
+        }
+
+        /* --- BUTTONS --- */
+        .btn {
+            background: linear-gradient(to bottom, #8b0000, #500000);
+            color: #ffecd2;
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            border: 2px solid #a00;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 4px 0 #300;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 0 #000;
+            transition: all 0.1s;
+        }
+
+        .btn:hover {
+            filter: brightness(1.2);
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #300;
+        }
+
+        .btn:disabled {
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        .btn-green {
+            background: linear-gradient(to bottom, #2e7d32, #1b5e20);
+            border-color: #1b5e20;
+            box-shadow: 0 4px 0 #003300;
+        }
+
+        /* --- SPECIFIC SCREENS --- */
+
+        /* Town Hall Grid */
+        #town-hall-board {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px;
+        }
+
+        /* Guild Hall Layout */
+        .guild-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: 100%;
+            gap: 20px;
+        }
+
+        .guild-sidebar {
+            background: var(--bg-card);
+            border-right: 4px solid var(--wood-dark);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .guild-main {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Character Card (Simplified for now) */
+        .char-card {
+            background: var(--parchment);
+            color: var(--ink);
+            padding: 10px;
+            border: 2px solid var(--wood-light);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .char-portrait {
+            width: 80px;
+            height: 80px;
+            background: #888;
+            border: 2px solid var(--wood-dark);
+        }
+
+        /* Utility */
+        .gold-display {
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- PERSISTENT HUD (Always Visible During Gameplay) -->
+    <div id="game-hud"
+        style="display:none; position:fixed; top:0; left:0; right:0; z-index:500; background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0)); padding:10px 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto;">
+            <div style="display:flex; gap:30px; align-items:center;">
+                <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--parchment);">📅 Day <span
+                        id="hud-day">1</span></span>
+                <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--gold);">💰 <span
+                        id="hud-gold">350</span> G</span>
+                <span style="font-family:var(--font-display); font-size:1rem; color:#aaa;">⭐ Rep: <span
+                        id="hud-rep">5</span></span>
+            </div>
+            <div>
+                <button onclick="UI.openSettings()"
+                    style="background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">⚙️</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1100; align-items:center; justify-content:center;">
+        <div class="quest-scroll" style="width:400px; height:auto;">
+            <h2 style="font-family:var(--font-display);">⚙️ Settings</h2>
+            <br>
+            <button class="btn" onclick="UI.returnToMainMenu()"
+                style="width:100%; margin-bottom:10px; background:#555; border-color:#333;">🏠 Main Menu</button>
+            <button class="btn" onclick="UI.closeSettings()" style="width:100%;">Continue Playing</button>
+        </div>
+    </div>
+
+    <!-- MAIN MENU (Entry Point) -->
+    <div id="screen-main-menu" class="screen wood-bg active">
+        <div
+            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <h1
+                style="font-family: var(--font-display); font-size: 5rem; color: var(--gold); text-shadow: 0 0 30px black; margin-bottom: 20px;">
+                TAVERN GUILD MASTER
+            </h1>
+            <p style="color: var(--parchment); font-size: 1.3rem; font-family: var(--font-main); margin-bottom: 60px;">
+                Manage your adventurer's guild and send heroes on quests
+            </p>
+
+            <button class="btn btn-green" onclick="UI.startNewGame()"
+                style="font-size:1.5rem; padding: 20px 60px; margin-bottom: 20px;">
+                ⚔️ New Game
+            </button>
+            <button class="btn" id="continue-btn" onclick="UI.continueGame()"
+                style="font-size:1.3rem; padding: 15px 50px; background:#555; border-color:#333;" disabled>
+                📜 Continue
+            </button>
+            <p id="save-status" style="color:#888; margin-top:15px; font-size:0.9rem;"></p>
+        </div>
+    </div>
+
+    <!-- VISITOR EVENT SCREEN (Only shows when there's a morning visitor) -->
+    <div id="screen-morning" class="screen wood-bg">
+        <div
+            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <h1
+                style="font-family: var(--font-display); font-size: 4rem; color: var(--gold); text-shadow: 0 0 20px black; margin-bottom: 0;">
+                MORNING HAS BROKEN</h1>
+            <h2 style="color: var(--parchment); font-family: var(--font-main);">Day <span id="morning-day">1</span></h2>
+        </div>
+
+        <!-- VISITOR MODAL (Overlay) -->
+        <div id="visitor-modal"
+            style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:999; align-items:center; justify-content:center;">
+            <div class="quest-scroll" style="width: 500px; height: auto; border: 4px solid var(--gold);">
+                <h2 id="visitor-name">Visitor Name</h2>
+                <div style="display:flex; gap:20px; margin-top:20px;">
+                    <div style="width:100px; height:100px; background:#555; border:2px solid var(--ink);"></div>
+                    <p id="visitor-text" style="flex:1; font-size:1.1rem;">Visitor dialogue text...</p>
+                </div>
+                <div style="margin-top:30px; display:flex; gap:10px; justify-content:flex-end;">
+                    <button class="btn"
+                        style="background: var(--gold-dark); border-color: var(--wood-dark); color: black;"
+                        onclick="UI.handleVisitor(true)">Pay <span id="visitor-cost">20</span> G</button>
+                    <button class="btn" style="background:#555; border-color:#333;"
+                        onclick="UI.handleVisitor(false)">Refuse</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: TOWN HALL (Quest Board) -->
+    <div id="screen-town" class="screen wood-bg">
+        <div class="header-bar">
+            <span>🏛️ TOWN HALL</span>
+            <div>Claimed: <span id="claimed-count">0</span>/2</div>
+            <button class="btn" onclick="UI.goToDesk()">Go to Desk ➔</button>
+        </div>
+        <div class="main-content">
+            <div id="town-hall-board">
+                <!-- Quests injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2.5: DESK VIEW (Adventurer Queue) -->
+    <div id="screen-desk" class="screen" style="background: var(--bg-dark);">
+        <div class="header-bar">
+            <span>📋 YOUR DESK</span>
+            <div id="desk-queue-indicator">Waiting: <span id="desk-queue-count">0</span> adventurers</div>
+            <button class="btn" onclick="UI.skipToRoster()" id="skip-to-roster-btn" style="opacity:0.5;" disabled>Skip
+                to Roster ➔</button>
+        </div>
+
+        <div
+            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px;">
+            <!-- Current Adventurer Card (Big, Centered) -->
+            <div id="desk-adventurer-card" class="quest-scroll"
+                style="width:500px; min-height:400px; transition: all 0.3s ease;">
+                <div style="display:flex; gap:20px;">
+                    <!-- Portrait -->
+                    <div
+                        style="width:120px; height:160px; background:#555; border:3px solid var(--wood-dark); flex-shrink:0;">
+                    </div>
+
+                    <!-- Info -->
+                    <div style="flex:1;">
+                        <h2 id="desk-char-name" style="font-family:var(--font-display); margin:0;">Adventurer Name
+                        </h2>
+                        <p id="desk-char-class" style="margin:5px 0; color:#888;"></p>
+                        <p id="desk-char-level" style="margin:0; font-size:0.9rem;"></p>
+                    </div>
+                </div>
+
+                <!-- Visual Tells (Flavor) -->
+                <div id="desk-visual-tells"
+                    style="margin-top:15px; padding:10px; background:rgba(0,0,0,0.2); border-radius:5px; font-style:italic; color:#aaa;">
+                </div>
+
+                <!-- Stats -->
+                <div style="margin-top:20px;">
+                    <h3 style="font-family:var(--font-display); font-size:1rem; margin-bottom:10px;">Stats</h3>
+                    <div id="desk-char-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    </div>
+                </div>
+
+                <!-- Traits -->
+                <div style="margin-top:15px;">
+                    <h3 style="font-family:var(--font-display); font-size:1rem; margin-bottom:10px;">Traits</h3>
+                    <div id="desk-char-traits"></div>
+                </div>
+
+                <!-- Hire Costs -->
+                <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div style="background:var(--wood-light); padding:12px; border-radius:5px; text-align:center;">
+                        <div style="font-weight:bold; color:var(--ink);">FULL-TIME</div>
+                        <div id="desk-cost-fulltime" style="font-size:1.2rem; color:var(--gold);">100G</div>
+                        <div style="font-size:0.8rem; color:#666;">+ <span id="desk-wage">10</span>G/day wage</div>
+                    </div>
+                    <div style="background:var(--wood-light); padding:12px; border-radius:5px; text-align:center;">
+                        <div style="font-weight:bold; color:var(--ink);">FREELANCE</div>
+                        <div id="desk-cost-freelance" style="font-size:1.2rem; color:var(--gold);">40G</div>
+                        <div style="font-size:0.8rem; color:#666;">+ 50% quest cut</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="margin-top:25px; display:flex; gap:10px;">
+                    <button class="btn btn-green" onclick="UI.hireFromDesk('fulltime')" style="flex:1;">✅ Hire
+                        Full-Time</button>
+                    <button class="btn" onclick="UI.hireFromDesk('freelance')"
+                        style="flex:1; background:var(--gold-dark); color:#000;">🤝 Hire Freelance</button>
+                </div>
+                <button class="btn" onclick="UI.rejectFromDesk()"
+                    style="width:100%; margin-top:10px; background:#555; border-color:#333;">❌ Reject (Next
+                    Adventurer)</button>
+            </div>
+
+            <!-- No More Adventurers Message -->
+            <div id="desk-empty-message" style="display:none; text-align:center; color:var(--parchment);">
+                <h2 style="font-family:var(--font-display); color:var(--gold);">No More Visitors Today</h2>
+                <p>The queue is empty. Head to your roster to manage quests.</p>
+                <button class="btn btn-green" onclick="UI.skipToRoster()"
+                    style="margin-top:20px; font-size:1.2rem; padding:15px 40px;">Go to Roster ➔</button>
+            </div>
+
+            <!-- Queue Dots -->
+            <div id="desk-queue-dots" style="margin-top:30px; display:flex; gap:8px;">
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: ROSTER VIEW (Quest Management) -->
+    <div id="screen-guild" class="screen" style="background: var(--bg-dark);">
+        <div class="header-bar">
+            <span>🛡️ ROSTER</span>
+            <div class="gold-display" id="guild-gold">350 G</div>
+            <button class="btn" onclick="UI.endDay()">End Day 🌙</button>
+        </div>
+
+        <div class="guild-layout">
+            <!-- Sidebar: Roster -->
+            <div class="guild-sidebar">
+                <h2
+                    style="color:var(--gold); border-bottom:1px solid var(--wood-light); font-family:var(--font-display);">
+                    Your Heroes</h2>
+                <div id="guild-roster-list">
+                    <!-- Roster items -->
+                </div>
+            </div>
+
+            <!-- Main: Quest Assignments -->
+            <div class="guild-main">
+                <h2 style="color:var(--parchment); font-family:var(--font-display);">Claimed Quests (Assignments)
+                </h2>
+                <div id="guild-quest-list" style="display:flex; flex-wrap:wrap;">
+                    <!-- Claimed quests go here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARACTER DETAIL MODAL -->
+    <div id="character-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+        <div class="quest-scroll" style="width: 600px; height: auto; max-height:80vh; overflow-y:auto; cursor:default;">
+            <h2 id="char-modal-name" style="font-family: var(--font-display); border-bottom: 2px solid var(--ink);">
+                Character Name</h2>
+            <div style="display:flex; gap:15px; margin-top:15px;">
+                <div style="width:100px; height:120px; background:#888; border:2px solid var(--wood-dark);"></div>
+                <div style="flex:1;">
+                    <p id="char-modal-class" style="margin:0; font-weight:bold;"></p>
+                    <p id="char-modal-level" style="margin:5px 0; font-size:0.9rem;"></p>
+                    <p id="char-modal-type" style="margin:0; font-size:0.85rem; color:#666;"></p>
+                </div>
+            </div>
+
+            <h3 style="margin-top:20px; font-family:var(--font-display); font-size:1.1rem;">Stats</h3>
+            <div id="char-modal-stats"></div>
+
+            <h3 style="margin-top:15px; font-family:var(--font-display); font-size:1.1rem;">Traits</h3>
+            <div id="char-modal-traits"></div>
+
+            <button class="btn" onclick="UI.closeCharacterModal()" style="margin-top:20px; width:100%;">Close</button>
+        </div>
+    </div>
+
+    <!-- QUEST ASSIGNMENT MODAL -->
+    <div id="assign-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+        <div class="quest-scroll" style="width: 500px; height: auto; max-height:80vh; overflow-y:auto; cursor:default;">
+            <h2 style="font-family: var(--font-display);">Assign Hero to Quest</h2>
+            <p id="assign-quest-name" style="font-weight:bold; margin:10px 0;"></p>
+            <hr style="border:0; border-bottom:1px solid #ccc; margin:15px 0;">
+            <h3 style="font-size:1rem;">Select Hero:</h3>
+            <div id="assign-hero-list"></div>
+            <button class="btn" onclick="UI.closeAssignModal()"
+                style="margin-top:15px; width:100%; background:#555; border-color:#333;">Cancel</button>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: EVENING REPORT -->
+    <div id="screen-evening" class="screen wood-bg">
+        <div
+            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <div class="quest-scroll" style="width: 500px; height: auto;">
+                <h3>📜 DAILY LEDGER</h3>
+                <div id="evening-report-content" style="text-align:left; padding:10px;">
+                    <!-- Report Details -->
+                </div>
+                <br>
+                <button class="btn btn-green" onclick="UI.startNextDay()"
+                    style="font-size:1.2rem; padding:15px 30px;">💤 Rest Until Dawn</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="data/classes.js"></script>
+    <script src="data/traits.js"></script>
+    <script src="data/quests.js"></script>
+    <script src="data/items.js"></script>
+    <script src="data/characters.js"></script>
+
+    <script src="src/utils/ContentLoader.js"></script>
+    <script src="src/core/GameState.js"></script>
+
+    <script>
+        const UI = {
+            init() {
+                window.ContentLoader.init().then(() => {
+                    // Check if save exists
+                    const hasSave = localStorage.getItem('TGM_Save') !== null;
+
+                    // Show main menu
+                    document.getElementById('screen-main-menu').classList.add('active');
+
+                    // Enable "Continue" button if save exists
+                    const continueBtn = document.getElementById('continue-btn');
+                    const saveStatus = document.getElementById('save-status');
+
+                    if (hasSave) {
+                        continueBtn.disabled = false;
+                        continueBtn.style.opacity = '1';
+
+                        // Show save info
+                        try {
+                            const data = JSON.parse(localStorage.getItem('TGM_Save'));
+                            saveStatus.innerText = `Saved Game: Day ${data.day}, ${data.gold}G`;
+                        } catch (e) {
+                            saveStatus.innerText = "Save found";
+                        }
+                    } else {
+                        continueBtn.style.opacity = '0.5';
+                        saveStatus.innerText = "No saved game found";
+                    }
+                }).catch(err => alert("Error: " + err));
+            },
+
+            startNewGame() {
+                // Clear any existing save
+                localStorage.removeItem('TGM_Save');
+
+                // Reset GameState singleton properly
+                GameState.resetInstance();
+
+                // Hide menu
+                document.getElementById('screen-main-menu').classList.remove('active');
+
+                // Initialize fresh GameState
+                window.GameState.init();
+                this.syncScreen();
+            },
+
+            continueGame() {
+                // Hide menu
+                document.getElementById('screen-main-menu').classList.remove('active');
+
+                // Load GameState
+                window.GameState.init();
+                this.syncScreen();
+            },
+
+            // --- NAVIGATION & PHASE CONTROL ---
+
+            syncScreen() {
+                // Hide all screens
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+
+                const phase = window.GameState.phase;
+                const isGameplay = phase !== 'MAIN_MENU';
+
+                // Show/Hide HUD based on gameplay state
+                document.getElementById('game-hud').style.display = isGameplay ? 'block' : 'none';
+
+                // Update HUD values
+                if (isGameplay) {
+                    this.updateHUD();
+                }
+
+                // AUTO-PROCEED: If morning phase and no visitor event, go straight to Town Hall
+                if (phase === 'MORNING' && !window.GameState.morningEvent) {
+                    window.GameState.enterTownHall();
+                    document.getElementById('screen-town').classList.add('active');
+                    this.renderTownHall();
+                    return;
+                }
+
+                // If morning WITH event, show the morning screen + modal
+                if (phase === 'MORNING') {
+                    document.getElementById('screen-morning').classList.add('active');
+                    document.getElementById('morning-day').innerText = window.GameState.day;
+
+                    if (window.GameState.morningEvent) {
+                        this.showVisitorModal(window.GameState.morningEvent);
+                    }
+                }
+                else if (phase === 'TOWN_HALL') {
+                    document.getElementById('screen-town').classList.add('active');
+                    this.renderTownHall();
+                }
+                else if (phase === 'DESK') {
+                    document.getElementById('screen-desk').classList.add('active');
+                    this.renderDesk();
+                }
+                else if (phase === 'GUILD_HALL') {
+                    document.getElementById('screen-guild').classList.add('active');
+                    this.renderGuildHall();
+                }
+                else if (phase === 'LEDGER') {
+                    document.getElementById('screen-evening').classList.add('active');
+                    this.renderLedger();
+                }
+            },
+
+            updateHUD() {
+                document.getElementById('hud-day').innerText = window.GameState.day;
+                document.getElementById('hud-gold').innerText = window.GameState.gold;
+                document.getElementById('hud-rep').innerText = window.GameState.reputation.town;
+            },
+
+            openSettings() {
+                document.getElementById('settings-modal').style.display = 'flex';
+            },
+
+            closeSettings() {
+                document.getElementById('settings-modal').style.display = 'none';
+            },
+
+            returnToMainMenu() {
+                this.closeSettings();
+                document.getElementById('game-hud').style.display = 'none';
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById('screen-main-menu').classList.add('active');
+
+                // Update continue button status
+                const hasSave = localStorage.getItem('TGM_Save') !== null;
+                const continueBtn = document.getElementById('continue-btn');
+                continueBtn.disabled = !hasSave;
+                continueBtn.style.opacity = hasSave ? '1' : '0.5';
+            },
+
+            showVisitorModal(eventData) {
+                document.getElementById('visitor-modal').style.display = 'flex';
+                document.getElementById('visitor-name').innerText = eventData.name;
+                document.getElementById('visitor-text').innerText = eventData.text;
+                document.getElementById('visitor-cost').innerText = eventData.cost;
+            },
+
+            handleVisitor(didPay) {
+                // Clear the event
+                window.GameState.morningEvent = null;
+
+                // Apply payment and log expense
+                if (didPay) {
+                    window.GameState.gold -= 20;
+                    window.GameState.dailyLog.expenses.push({ source: 'Protection Fee', amount: 20 });
+                } else {
+                    // Could reduce reputation here in future
+                    window.GameState.reputation.town = Math.max(0, window.GameState.reputation.town - 1);
+                }
+
+                window.GameState.saveGame();
+
+                // Hide modal and immediately go to Town Hall
+                document.getElementById('visitor-modal').style.display = 'none';
+                window.GameState.enterTownHall();
+                this.syncScreen();
+            },
+
+            goToTownHall() {
+                window.GameState.enterTownHall();
+                this.syncScreen();
+            },
+
+            goToDesk() {
+                window.GameState.enterDesk();
+                this.syncScreen();
+            },
+
+            skipToRoster() {
+                window.GameState.enterGuildHall();
+                this.syncScreen();
+            },
+
+            returnToGuild() {
+                window.GameState.enterGuildHall();
+                this.syncScreen();
+            },
+
+            endDay() {
+                const results = window.GameState.endDay();
+                this.syncScreen();
+            },
+
+            startNextDay() {
+                window.GameState.nextDay();
+                this.syncScreen();
+            },
+
+            // --- RENDERING ---
+
+            // === DESK VIEW (Queue-based Hiring) ===
+            renderDesk() {
+                this.updateHUD();
+                const hires = window.GameState.availableHires;
+                const idx = window.GameState.deskQueueIndex || 0;
+                const remaining = hires.length - idx;
+
+                // Update queue counter
+                document.getElementById('desk-queue-count').innerText = remaining;
+
+                // Queue dots
+                const dotsContainer = document.getElementById('desk-queue-dots');
+                dotsContainer.innerHTML = hires.map((_, i) =>
+                    `<div style="width:12px; height:12px; border-radius:50%; background:${i === idx ? 'var(--gold)' : '#555'}; border:2px solid var(--wood-dark);"></div>`
+                ).join('');
+
+                // Show/hide skip button
+                const skipBtn = document.getElementById('skip-to-roster-btn');
+                skipBtn.disabled = false;
+                skipBtn.style.opacity = '1';
+
+                if (remaining <= 0 || idx >= hires.length) {
+                    // No more adventurers
+                    document.getElementById('desk-adventurer-card').style.display = 'none';
+                    document.getElementById('desk-empty-message').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('desk-adventurer-card').style.display = 'block';
+                document.getElementById('desk-empty-message').style.display = 'none';
+
+                const char = hires[idx];
+
+                // Name & Class
+                document.getElementById('desk-char-name').innerText = `${char.name} ${char.surname || ''}`;
+                document.getElementById('desk-char-class').innerText = char.className || 'Adventurer';
+                document.getElementById('desk-char-level').innerText = `Level ${char.level}`;
+
+                // Visual Tells (flavor text)
+                const tells = char.visualTells || [];
+                document.getElementById('desk-visual-tells').innerHTML = tells.length > 0
+                    ? tells.map(t => `• ${t}`).join('<br>')
+                    : '<em>Nothing unusual...</em>';
+
+                // Stats (with bars)
+                const stats = char.baseStats || {};
+                document.getElementById('desk-char-stats').innerHTML = Object.entries(stats).map(([key, val]) => {
+                    const pct = (val / 10) * 100;
+                    return `
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="width:30px; text-transform:uppercase; font-weight:bold; font-size:0.8rem;">${key}</span>
+                                <div style="flex:1; height:8px; background:#333; border-radius:4px; overflow:hidden;">
+                                    <div style="width:${pct}%; height:100%; background:var(--gold);"></div>
+                                </div>
+                                <span style="width:20px; text-align:right; font-size:0.9rem;">${val}</span>
+                            </div>
+                        `;
+                }).join('');
+
+                // Traits (all types)
+                const allTraits = [
+                    ...(char.traits || []),
+                    ...(char.cursedTraits || []).map(t => `⚠️ ${t}`),
+                    ...(char.legendaryTraits || []).map(t => `⭐ ${t}`)
+                ];
+                document.getElementById('desk-char-traits').innerHTML = allTraits.length > 0
+                    ? allTraits.map(t => `<span style="background:var(--wood-light); padding:3px 8px; border-radius:3px; margin-right:5px; font-size:0.85rem;">${t}</span>`).join('')
+                    : '<em>None visible</em>';
+
+                // Costs
+                const fullCost = char.hireCost || 100;
+                const freelanceCost = Math.floor(fullCost * 0.4);
+                const wage = char.dailyWage || 10;
+
+                document.getElementById('desk-cost-fulltime').innerText = `${fullCost}G`;
+                document.getElementById('desk-cost-freelance').innerText = `${freelanceCost}G`;
+                document.getElementById('desk-wage').innerText = wage;
+            },
+
+            hireFromDesk(hireType) {
+                const hires = window.GameState.availableHires;
+                const idx = window.GameState.deskQueueIndex || 0;
+
+                if (idx >= hires.length) return;
+
+                const char = hires[idx];
+                const result = window.GameState.hireAdventurer(char.id, hireType);
+
+                if (result.success) {
+                    // Advance queue (character was removed from availableHires by hireAdventurer)
+                    // Note: hireAdventurer removes from availableHires, so index stays same
+                    this.updateHUD();
+                    this.renderDesk();
+                } else {
+                    alert(result.message);
+                }
+            },
+
+            rejectFromDesk() {
+                const hires = window.GameState.availableHires;
+                const idx = window.GameState.deskQueueIndex || 0;
+
+                if (idx >= hires.length) {
+                    this.renderDesk();
+                    return;
+                }
+
+                // Just advance the index (adventurer stays in pool for potential later appearance)
+                window.GameState.deskQueueIndex = idx + 1;
+                window.GameState.saveGame();
+                this.renderDesk();
+            },
+
+            renderTownHall() {
+                const container = document.getElementById('town-hall-board');
+                container.innerHTML = '';
+                const claimedIds = window.GameState.claimedQuests.map(q => q.id);
+
+                window.GameState.availableQuests.forEach(q => {
+                    const isClaimed = claimedIds.includes(q.id);
+                    const div = document.createElement('div');
+                    div.className = 'quest-scroll';
+
+                    const rankColor = q.rank === 'S' ? '#9C27B0' : q.rank === 'A' ? '#F44336' : '#4CAF50';
+
+                    div.innerHTML = `
+                        <div class="rank-badge" style="background:${rankColor}">${q.rank}</div>
+                        <h3>${q.name}</h3>
+                        <p style="font-style:italic; font-size:0.9rem;">"${q.type} - ${q.duration} Days"</p>
+                        <hr style="border:0; border-bottom:1px solid #ccc;">
+                        <p><strong>Req:</strong> ${q.requirements.primary}</p>
+                        <p><strong>Reward:</strong> <span style="color:var(--green); font-weight:bold;">${q.rewards.gold} G</span></p>
+                        <div style="margin-top:auto; text-align:center; padding-top:20px;">
+                            <button class="btn" onclick="UI.claimQuest('${q.id}')">Claim Quest</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+
+                document.getElementById('claimed-count').innerText = window.GameState.claimedQuests.length;
+            },
+
+            renderGuildHall() {
+                document.getElementById('guild-gold').innerText = window.GameState.gold + " G";
+                this.updateHUD(); // Keep HUD in sync
+
+                // Combine roster + freelancers for display
+                const allHeroes = [
+                    ...window.GameState.roster.map(c => ({ ...c, hireCategory: 'Full-Time' })),
+                    ...window.GameState.freelancers.map(c => ({ ...c, hireCategory: 'Freelance' }))
+                ];
+
+                // Roster
+                const rosterList = document.getElementById('guild-roster-list');
+                rosterList.innerHTML = '';
+                if (allHeroes.length === 0) rosterList.innerHTML = "<em>No heroes. Hire some!</em>";
+
+                allHeroes.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'char-card';
+                    div.style.cursor = 'pointer';
+                    div.onclick = () => UI.showCharacterModal(c);
+
+                    // Hire type badge
+                    const hireBadge = c.hireCategory === 'Freelance' ?
+                        '<span style="background:#d4af37; color:#000; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold;">FREELANCE</span>' :
+                        '<span style="background:#4CAF50; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold;">FULL-TIME</span>';
+
+                    // Status badge
+                    let statusBadge = '';
+                    const isAssigned = window.GameState.isHeroAssigned(c.id);
+
+                    if (c.status === 'ON_QUEST') {
+                        statusBadge = `<br><span style="background:#2196F3; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.65rem;">🗺️ ON QUEST (Returns Day ${c.busyUntilDay})</span>`;
+                        div.style.opacity = '0.7';
+                    } else if (c.status === 'INJURED') {
+                        statusBadge = `<br><span style="background:#FF5722; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.65rem;">🩹 INJURED</span>`;
+                        div.style.opacity = '0.7';
+                    } else if (isAssigned) {
+                        statusBadge = `<br><span style="background:#9C27B0; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.65rem;">📋 ASSIGNED</span>`;
+                    }
+
+                    div.innerHTML = `
+                        <div class="char-portrait"></div>
+                        <div style="flex:1;">
+                            <strong>${c.name}</strong> ${hireBadge}<br>
+                            <span style="font-size:0.8rem">Lvl ${c.level || 1} ${c.className || 'Adventurer'}</span>
+                            ${statusBadge}
+                        </div>
+                    `;
+                    rosterList.appendChild(div);
+                });
+
+                // Recruits (still available to hire)
+                const recruitList = document.getElementById('guild-recruit-list');
+                recruitList.innerHTML = '';
+                if (window.GameState.availableHires.length === 0) {
+                    recruitList.innerHTML = "<em>No recruits available today.</em>";
+                }
+
+                window.GameState.availableHires.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'char-card';
+                    div.style.background = '#e0e0e0';
+
+                    const fullTimeCost = c.hireCost || 100;
+                    const fullTimeWage = c.dailyWage || 10;
+                    const freelanceCost = Math.floor(fullTimeCost * 0.4);
+
+                    div.innerHTML = `
+                        <div class="char-portrait"></div>
+                        <div style="flex:1;">
+                            <strong>${c.name}</strong><br>
+                            <span style="font-size:0.75rem;">Full-Time: ${fullTimeCost}G + ${fullTimeWage}G/day</span><br>
+                            <span style="font-size:0.75rem;">Freelance: ${freelanceCost}G + 50% cut</span>
+                            <br>
+                            <button class="btn btn-green" style="font-size:0.7rem; padding:3px 6px; margin-top:4px; margin-right:4px;" onclick="event.stopPropagation(); UI.hire('${c.id}', 'fulltime')">Hire Full-Time</button>
+                            <button class="btn" style="font-size:0.7rem; padding:3px 6px; background:#6b8e23; border-color:#556b2f;" onclick="event.stopPropagation(); UI.hire('${c.id}', 'freelance')">Hire Freelance</button>
+                        </div>
+                    `;
+                    recruitList.appendChild(div);
+                });
+
+                // Claimed Quests (with assignment UI)
+                const questList = document.getElementById('guild-quest-list');
+                questList.innerHTML = '';
+
+                // Show active quests in progress first
+                if (window.GameState.activeQuests.length > 0) {
+                    const activeHeader = document.createElement('h3');
+                    activeHeader.style.cssText = 'color: #2196F3; font-family: var(--font-display); margin-bottom: 10px;';
+                    activeHeader.innerText = '🗺️ Quests In Progress';
+                    questList.appendChild(activeHeader);
+
+                    window.GameState.activeQuests.forEach(q => {
+                        const hero = window.GameState.findHeroById(q.assignedHeroId);
+                        const div = document.createElement('div');
+                        div.style.cssText = 'background: rgba(33, 150, 243, 0.2); padding: 12px; margin: 8px 0; border-radius: 4px; border-left: 4px solid #2196F3;';
+                        div.innerHTML = `
+                            <strong>${q.name}</strong><br>
+                            <span style="font-size:0.85rem;">Hero: ${hero ? hero.name : '?'}</span><br>
+                            <span style="font-size:0.85rem; color:#ccc;">Returns: Day ${q.returnDay}</span>
+                        `;
+                        questList.appendChild(div);
+                    });
+                }
+
+                // Then show claimed quests awaiting assignment
+                if (window.GameState.claimedQuests.length === 0 && window.GameState.activeQuests.length === 0) {
+                    questList.innerHTML = "<p style='color:white;'>No quests claimed from Town Hall.</p>";
+                }
+
+                if (window.GameState.claimedQuests.length > 0) {
+                    const claimedHeader = document.createElement('h3');
+                    claimedHeader.style.cssText = 'color: var(--gold); font-family: var(--font-display); margin: 20px 0 10px 0;';
+                    claimedHeader.innerText = '📋 Awaiting Assignment';
+                    questList.appendChild(claimedHeader);
+                }
+
+                window.GameState.claimedQuests.forEach(q => {
+                    const div = document.createElement('div');
+                    div.className = 'quest-scroll';
+                    div.style.transform = 'scale(0.9)';
+                    div.style.margin = '10px';
+
+                    const assigned = q.assignedHeroId ? allHeroes.find(h => h.id === q.assignedHeroId) : null;
+                    const duration = parseInt(q.duration) || 1;
+
+                    let assignmentUI = '';
+                    if (assigned) {
+                        assignmentUI = `
+                            <div style="background:#e8f5e9; padding:8px; border-radius:4px; margin-top:10px;">
+                                <strong>✅ Assigned: ${assigned.name}</strong><br>
+                                <span style="font-size:0.85rem;">Est. Success: ${UI.calculateMockSuccess(assigned, q)}%</span>
+                            </div>
+                            <button class="btn" style="font-size:0.8rem; padding:4px 8px; margin-top:8px; background:#999; border-color:#666;" onclick="UI.unassignQuest('${q.id}')">Unassign</button>
+                        `;
+                    } else {
+                        assignmentUI = `
+                            <button class="btn btn-green" style="font-size:0.9rem; padding:6px 12px; margin-top:10px;" onclick="UI.openAssignModal('${q.id}')">Assign Hero</button>
+                        `;
+                    }
+
+                    div.innerHTML = `
+                        <h3>${q.name}</h3>
+                        <p style="font-size:0.85rem;">Rank: ${q.rank} | Reward: ${q.rewards.gold}G</p>
+                        <p style="font-size:0.8rem; color:#666;">Duration: ${duration} day(s)</p>
+                        ${assignmentUI}
+                    `;
+                    questList.appendChild(div);
+                });
+            },
+
+            renderLedger() {
+                const log = window.GameState.dailyLog;
+                const container = document.getElementById('evening-report-content');
+
+                let html = `<h4>Income</h4><ul>`;
+                let totalIncome = 0;
+                log.income.forEach(item => {
+                    html += `<li>${item.source}: +${item.amount}G</li>`;
+                    totalIncome += item.amount;
+                });
+                if (log.income.length === 0) html += "<li>None</li>";
+                html += `</ul>`;
+
+                html += `<h4>Expenses</h4><ul>`;
+                let totalExp = 0;
+                log.expenses.forEach(item => {
+                    html += `<li>${item.source}: -${item.amount}G</li>`;
+                    totalExp += item.amount;
+                });
+                html += `</ul>`;
+
+                const net = totalIncome - totalExp;
+                const color = net >= 0 ? 'green' : 'red';
+                html += `<hr><h3>Net: <span style="color:${color}">${net} G</span></h3>`;
+
+                container.innerHTML = html;
+            },
+
+            // --- CHARACTER DETAIL MODAL ---
+
+            showCharacterModal(char) {
+                document.getElementById('char-modal-name').innerText = char.name;
+                document.getElementById('char-modal-class').innerText = `Class: ${char.className || 'Adventurer'}`;
+                document.getElementById('char-modal-level').innerText = `Level ${char.level || 1}`;
+                document.getElementById('char-modal-type').innerText = char.hireCategory ? `Hired as: ${char.hireCategory}` : '';
+
+                // Stats
+                const stats = char.stats || { STR: 5, INT: 5, DEX: 5, VIT: 5 };
+                let statsHTML = '';
+                for (let [stat, value] of Object.entries(stats)) {
+                    const barFill = Math.round((value / 10) * 100);
+                    statsHTML += `
+                        <div style="margin-bottom:8px;">
+                            <span style="display:inline-block; width:35px; font-weight:bold;">${stat}:</span>
+                            <div style="display:inline-block; width:150px; height:12px; background:#ddd; border:1px solid #999; vertical-align:middle;">
+                                <div style="width:${barFill}%; height:100%; background:#4CAF50;"></div>
+                            </div>
+                            <span style="margin-left:8px;">${value}</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('char-modal-stats').innerHTML = statsHTML;
+
+                // Traits
+                const traits = char.traits || [];
+                let traitsHTML = '';
+                if (traits.length === 0) {
+                    traitsHTML = '<em>No special traits.</em>';
+                } else {
+                    traits.forEach(trait => {
+                        traitsHTML += `<div style="background:#f5f5f5; padding:6px; margin-bottom:5px; border-left:3px solid var(--gold);"><strong>${trait.name || trait}</strong></div>`;
+                    });
+                }
+                document.getElementById('char-modal-traits').innerHTML = traitsHTML;
+
+                document.getElementById('character-modal').style.display = 'flex';
+            },
+
+            closeCharacterModal() {
+                document.getElementById('character-modal').style.display = 'none';
+            },
+
+            // --- QUEST ASSIGNMENT ---
+
+            openAssignModal(questId) {
+                const quest = window.GameState.claimedQuests.find(q => q.id === questId);
+                if (!quest) return;
+
+                this.currentAssignQuestId = questId;
+                document.getElementById('assign-quest-name').innerText = quest.name;
+
+                const duration = parseInt(quest.duration) || 1;
+
+                // Combine roster + freelancers
+                const allHeroes = [
+                    ...window.GameState.roster,
+                    ...window.GameState.freelancers
+                ];
+
+                const heroList = document.getElementById('assign-hero-list');
+                heroList.innerHTML = '';
+
+                // Show quest info
+                heroList.innerHTML = `<p style="margin-bottom:10px; color:#666;">Duration: ${duration} day(s) | Returns: Day ${window.GameState.day + duration}</p>`;
+
+                const availableHeroes = allHeroes.filter(h =>
+                    window.GameState.isHeroAvailable(h.id) && !window.GameState.isHeroAssigned(h.id)
+                );
+
+                if (availableHeroes.length === 0) {
+                    heroList.innerHTML += '<p style="color:#999;">No available heroes. They may be on quests, injured, or already assigned.</p>';
+                } else {
+                    availableHeroes.forEach(hero => {
+                        const successRate = this.calculateMockSuccess(hero, quest);
+                        const div = document.createElement('div');
+                        div.style.cssText = 'padding:10px; margin:8px 0; background:#f5f5f5; cursor:pointer; border:2px solid transparent; border-radius:4px;';
+                        div.onmouseover = () => div.style.borderColor = 'var(--gold)';
+                        div.onmouseout = () => div.style.borderColor = 'transparent';
+                        div.onclick = () => UI.assignHeroToQuest(hero.id);
+
+                        const typeLabel = hero.hireType === 'freelance' ? ' (Freelance - 50% cut)' : '';
+                        div.innerHTML = `
+                            <strong>${hero.name}</strong> (Lvl ${hero.level || 1})${typeLabel}<br>
+                            <span style="font-size:0.85rem; color:#666;">Est. Success: ${successRate}%</span>
+                        `;
+                        heroList.appendChild(div);
+                    });
+                }
+
+                // Show unavailable heroes greyed out
+                const unavailableHeroes = allHeroes.filter(h =>
+                    !window.GameState.isHeroAvailable(h.id) || window.GameState.isHeroAssigned(h.id)
+                );
+
+                if (unavailableHeroes.length > 0) {
+                    const unavailHeader = document.createElement('p');
+                    unavailHeader.style.cssText = 'color:#999; margin-top:15px; font-size:0.85rem;';
+                    unavailHeader.innerText = '— Unavailable —';
+                    heroList.appendChild(unavailHeader);
+
+                    unavailableHeroes.forEach(hero => {
+                        const div = document.createElement('div');
+                        div.style.cssText = 'padding:8px; margin:4px 0; background:#e0e0e0; opacity:0.5; border-radius:4px;';
+
+                        let reason = '';
+                        if (hero.status === 'ON_QUEST') reason = `On quest until Day ${hero.busyUntilDay}`;
+                        else if (hero.status === 'INJURED') reason = 'Injured';
+                        else if (window.GameState.isHeroAssigned(hero.id)) reason = 'Already assigned';
+
+                        div.innerHTML = `<strong>${hero.name}</strong> <span style="color:#999;">(${reason})</span>`;
+                        heroList.appendChild(div);
+                    });
+                }
+
+                document.getElementById('assign-modal').style.display = 'flex';
+            },
+
+            closeAssignModal() {
+                document.getElementById('assign-modal').style.display = 'none';
+            },
+
+            assignHeroToQuest(heroId) {
+                const questId = this.currentAssignQuestId;
+
+                // Use GameState's validated method
+                const result = window.GameState.assignHeroToQuest(questId, heroId);
+
+                if (result.success) {
+                    this.closeAssignModal();
+                    this.renderGuildHall();
+                } else {
+                    alert(result.message);
+                }
+            },
+
+            unassignQuest(questId) {
+                const result = window.GameState.unassignHeroFromQuest(questId);
+                if (result.success) {
+                    this.renderGuildHall();
+                }
+            },
+
+            calculateMockSuccess(hero, quest) {
+                // Simple mock calculation (will replace with MatchFormula.js later)
+                const heroLevel = hero.level || 1;
+                const questRankValue = { F: 1, D: 2, C: 3, B: 4, A: 5, S: 6 }[quest.rank] || 1;
+                const base = 70;
+                const levelBonus = (heroLevel - questRankValue) * 10;
+                return Math.max(10, Math.min(95, base + levelBonus));
+            },
+
+            // --- ACTIONS ---
+
+            claimQuest(id) {
+                const result = window.GameState.claimQuest(id);
+                if (result.success) {
+                    this.renderTownHall();
+                } else {
+                    alert(result.message);
+                }
+            },
+
+            hire(id, hireType = 'fulltime') {
+                const result = window.GameState.hireAdventurer(id, hireType);
+                if (result.success) {
+                    this.renderGuildHall();
+                } else {
+                    alert(result.message);
+                }
+            }
+        };
+
+        window.onload = () => UI.init();
+    </script>
+</body>
+
+</html>
