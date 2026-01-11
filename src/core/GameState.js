@@ -78,58 +78,74 @@ class GameState {
     }
 
     /**
-     * Process quests that return today (multi-day support)
+     * Process quests that return today using QuestResolver for real outcomes
      */
     processReturningQuests() {
         const returning = this.activeQuests.filter(q => q.returnDay <= this.day);
 
         returning.forEach(quest => {
-            // Roll for success based on hero/quest match
             const hero = this.findHeroById(quest.assignedHeroId);
-            const success = Math.random() > 0.3; // 70% base (TODO: use MatchFormula)
+            if (!hero) return;
 
-            let reward = quest.rewards.gold;
+            // === USE QUEST RESOLVER FOR REAL OUTCOMES ===
+            const result = window.QuestResolver.resolveQuest(hero, quest);
 
-            // Apply freelancer cut if applicable
-            if (hero && hero.hireType === 'freelance') {
-                const cut = Math.floor(reward * (hero.rewardCut || 0.5));
-                reward -= cut;
-                if (success) {
-                    this.dailyLog.expenses.push({
-                        source: `${hero.name}'s Cut (50%)`,
-                        amount: cut
-                    });
-                }
-            }
+            // Store the full result for the evening report
+            this.dailyLog.questResults = this.dailyLog.questResults || [];
+            this.dailyLog.questResults.push(result);
 
-            // Log the quest result
-            this.dailyLog.questReports.push({
-                questId: quest.id,
-                name: quest.name,
-                heroName: hero ? hero.name : 'Unknown',
-                success: success,
-                reward: reward
-            });
-
-            // Apply rewards if successful
-            if (success) {
-                this.gold += reward;
+            // Apply gold rewards
+            if (result.goldEarned > 0) {
+                this.gold += result.goldEarned;
                 this.dailyLog.income.push({
-                    source: `${quest.name} (${hero ? hero.name : '?'})`,
-                    amount: reward
+                    source: `${quest.name} (${hero.name})`,
+                    amount: result.goldEarned
                 });
             }
 
-            // Update hero status
-            if (hero) {
-                hero.status = success ? 'IDLE' : 'INJURED';
-                hero.busyUntilDay = null;
-
-                // Freelancers leave after their quest
-                if (hero.hireType === 'freelance') {
-                    this.freelancers = this.freelancers.filter(f => f.id !== hero.id);
-                }
+            // Apply freelancer cut if applicable
+            if (result.freelancerCut > 0) {
+                this.dailyLog.expenses.push({
+                    source: `${hero.name}'s Cut (Freelance)`,
+                    amount: result.freelancerCut
+                });
             }
+
+            // Apply reputation change
+            if (result.reputationChange !== 0) {
+                this.reputation += result.reputationChange;
+            }
+
+            // Apply consequences to hero
+            if (result.died) {
+                hero.status = 'DEAD';
+                hero.deathDay = this.day;
+                hero.deathCause = `Died during ${quest.name}`;
+                console.log(`💀 ${hero.name} has died during ${quest.name}!`);
+            } else if (result.injury) {
+                hero.status = 'INJURED';
+                hero.injury = result.injury;
+                hero.busyUntilDay = this.day + result.recoveryDays;
+            } else {
+                hero.status = 'IDLE';
+                hero.busyUntilDay = null;
+            }
+
+            // Freelancers always leave after their quest
+            if (hero.hireType === 'freelance' && !result.died) {
+                this.freelancers = this.freelancers.filter(f => f.id !== hero.id);
+            }
+
+            // Legacy quest report for backwards compatibility
+            this.dailyLog.questReports.push({
+                questId: quest.id,
+                name: quest.name,
+                heroName: hero.name,
+                success: result.outcome === 'LEGENDARY' || result.outcome === 'GREAT' || result.outcome === 'SUCCESS',
+                outcome: result.outcomeLabel,
+                reward: result.goldEarned,
+                story: result.story
+            });
         });
 
         // Remove processed quests from active
@@ -166,7 +182,7 @@ class GameState {
         this.claimedQuests.forEach(quest => {
             if (quest.assignedHeroId) {
                 const hero = this.findHeroById(quest.assignedHeroId);
-                const duration = parseInt(quest.duration) || 1;
+                const duration = parseInt(quest.duration ?? 1);
 
                 // Set quest return day
                 quest.returnDay = this.day + duration;
@@ -186,6 +202,10 @@ class GameState {
 
         // Remove dispatched quests from claimed
         this.claimedQuests = this.claimedQuests.filter(q => !q.assignedHeroId);
+
+        // 1.5 Process 0-Day (Immediate) Quests
+        // Quests with duration 0 returning today are resolved now so they appear in this evening's report
+        this.processReturningQuests();
 
         // 2. Pay Wages (Full-Time Only)
         let totalWages = 20; // Base upkeep
@@ -358,29 +378,88 @@ class GameState {
             const allQuests = window.GAME_DATA.quests || [];
             this.availableQuests = this.getRandomSubset(allQuests, 4);
 
-            // Characters: DAY-SPECIFIC per UI_DESIGN_SPEC.md
-            // Characters have a 'day' field (1-21), cycle through weeks
+            // === PRE-GENERATED "SPECIAL" CHARACTERS ===
             const allChars = window.GAME_DATA.characters || [];
             const dayOfCycle = ((this.day - 1) % 21) + 1; // 1-21 repeating
 
-            // Get characters for today (may be multiple on some days like day 10)
             const existingIds = [...this.roster, ...this.freelancers].map(c => c.id);
             const todaysCharacters = allChars.filter(c =>
                 c.day === dayOfCycle && !existingIds.includes(c.id)
             );
 
-            // Also check for unlock conditions (legendary characters)
-            const unlockedChars = todaysCharacters.filter(c => {
+            // Check unlock conditions (legendary characters)
+            const unlockedSpecials = todaysCharacters.filter(c => {
                 if (!c.unlockCondition) return true;
                 const { questsCompleted, goldSaved } = c.unlockCondition;
-                // TODO: Track total quests completed
                 const meetsGold = !goldSaved || this.gold >= goldSaved;
                 return meetsGold;
             });
 
-            this.availableHires = unlockedChars;
-            console.log(`Day ${this.day} (Cycle Day ${dayOfCycle}): ${unlockedChars.length} adventurer(s) available`);
+            // === GENERATE RANDOM ADVENTURERS ===
+            const randomCount = 2 + Math.floor(Math.random() * 2); // 2-3 random
+            const randomAdventurers = [];
+            for (let i = 0; i < randomCount; i++) {
+                const rando = this.generateRandomAdventurer(this.day, i);
+                if (!existingIds.includes(rando.id)) {
+                    randomAdventurers.push(rando);
+                }
+            }
+
+            // Combine: specials first, then randoms
+            this.availableHires = [...unlockedSpecials, ...randomAdventurers];
+            console.log(`Day ${this.day}: ${unlockedSpecials.length} special + ${randomAdventurers.length} random = ${this.availableHires.length} total`);
         }
+    }
+
+    generateRandomAdventurer(day, index) {
+        const classes = window.GAME_DATA.classes || [];
+        const traits = window.GAME_DATA.traits || [];
+
+        // Name pools
+        const firstNames = ['Bron', 'Elara', 'Kira', 'Thorne', 'Mira', 'Dax', 'Soren', 'Ivy', 'Rex', 'Luna', 'Cass', 'Jorn', 'Vera', 'Pike', 'Nyla', 'Grim', 'Freya', 'Orin', 'Wren', 'Zane'];
+        const surnames = ['Stonefist', 'Nightblade', 'Ironfist', 'Swiftfoot', 'Blackwood', 'Ravencrest', 'Goldleaf', 'Steelwind', 'Ashborn', 'Duskwalker', 'Flameheart', 'Frostborn', 'Shadowmere', 'Brightshield', 'Thornwood'];
+        const visualTellsPool = [
+            'Scarred face', 'Missing finger', 'Distinctive tattoo', 'Weathered gear', 'Nervous twitch',
+            'Confident stance', 'Shifty eyes', 'Calm demeanor', 'Eager smile', 'Worn boots',
+            'Polished armor', 'Rusty weapon', 'Fresh bandages', 'Travel-stained cloak', 'Calloused hands'
+        ];
+
+        // Pick random class
+        const classData = classes[Math.floor(Math.random() * classes.length)];
+
+        // Generate level (1-4 for early game)
+        const level = 1 + Math.floor(Math.random() * 4);
+
+        // Generate stats based on class + level variance
+        const baseStats = { ...classData.stats };
+        Object.keys(baseStats).forEach(stat => {
+            baseStats[stat] = Math.max(1, Math.min(10, baseStats[stat] + Math.floor(Math.random() * 3) - 1));
+        });
+
+        // Pick 1-2 random traits
+        const traitCount = 1 + Math.floor(Math.random() * 2);
+        const selectedTraits = this.getRandomSubset(traits, traitCount).map(t => t.name);
+
+        // Pick 1-2 visual tells
+        const tells = this.getRandomSubset(visualTellsPool, 1 + Math.floor(Math.random() * 2));
+
+        // Calculate costs based on level
+        const hireCost = 60 + (level * 20) + Math.floor(Math.random() * 30);
+        const dailyWage = 12 + (level * 3) + Math.floor(Math.random() * 5);
+
+        return {
+            id: `random_day${day}_${index}_${Date.now()}`,
+            name: firstNames[Math.floor(Math.random() * firstNames.length)],
+            surname: surnames[Math.floor(Math.random() * surnames.length)],
+            className: classData.name,
+            level: level,
+            baseStats: baseStats,
+            traits: selectedTraits,
+            hireCost: hireCost,
+            dailyWage: dailyWage,
+            visualTells: tells,
+            isGenerated: true // Flag to identify random chars
+        };
     }
 
     getRandomSubset(array, count) {

@@ -104,7 +104,7 @@
             border-left: 5px solid #6d4c41;
             border-right: 5px solid #6d4c41;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            padding: 40px 20px;
+            padding: 40px 20px 60px 20px;
             box-sizing: border-box;
             font-family: var(--font-main);
             transition: transform 0.2s, box-shadow 0.2s;
@@ -371,68 +371,53 @@
                 to Roster ➔</button>
         </div>
 
-        <div
-            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:20px; overflow-y:auto;">
-            <!-- Current Adventurer Card (Big, Centered) -->
-            <div id="desk-adventurer-card" class="quest-scroll"
-                style="width:500px; max-width:95%; max-height:calc(100vh - 180px); overflow-y:auto; transition: all 0.3s ease;">
-                <div style="display:flex; gap:20px;">
-                    <!-- Portrait -->
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <!-- Adventurer Card - Max ~350px height to fit any viewport -->
+            <div id="desk-adventurer-card" class="quest-scroll" style="width:400px; max-width:92%; padding:14px;">
+
+                <!-- Row 1: Square Portrait + Name/Class/Traits (height ~70px) -->
+                <div style="display:flex; gap:12px;">
                     <div
-                        style="width:120px; height:160px; background:#555; border:3px solid var(--wood-dark); flex-shrink:0;">
+                        style="width:64px; height:64px; background:#555; border:2px solid var(--wood-dark); flex-shrink:0;">
                     </div>
-
-                    <!-- Info -->
-                    <div style="flex:1;">
-                        <h2 id="desk-char-name" style="font-family:var(--font-display); margin:0;">Adventurer Name
-                        </h2>
-                        <p id="desk-char-class" style="margin:5px 0; color:#888;"></p>
-                        <p id="desk-char-level" style="margin:0; font-size:0.9rem;"></p>
+                    <div style="flex:1; min-width:0;">
+                        <h2 id="desk-char-name"
+                            style="font-family:var(--font-display); margin:0; font-size:1.1rem; line-height:1.2;"></h2>
+                        <div style="color:#888; font-size:0.8rem; margin-top:2px;">
+                            <span id="desk-char-class"></span> • <span id="desk-char-level"></span>
+                        </div>
+                        <div id="desk-char-traits" style="margin-top:5px;"></div>
                     </div>
                 </div>
 
-                <!-- Visual Tells (Flavor) -->
+                <!-- Row 2: Visual Tells (height ~35px) -->
                 <div id="desk-visual-tells"
-                    style="margin-top:15px; padding:10px; background:rgba(0,0,0,0.2); border-radius:5px; font-style:italic; color:#aaa;">
+                    style="margin-top:8px; padding:5px 8px; background:rgba(0,0,0,0.15); border-radius:3px; font-style:italic; color:#eee; font-size:0.72rem; line-height:1.4;">
                 </div>
 
-                <!-- Stats -->
-                <div style="margin-top:20px;">
-                    <h3 style="font-family:var(--font-display); font-size:1rem; margin-bottom:10px;">Stats</h3>
-                    <div id="desk-char-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-                    </div>
-                </div>
+                <!-- Row 3: Stats inline (height ~30px) -->
+                <div id="desk-char-stats" style="margin-top:8px; display:flex; gap:4px;"></div>
 
-                <!-- Traits -->
-                <div style="margin-top:15px;">
-                    <h3 style="font-family:var(--font-display); font-size:1rem; margin-bottom:10px;">Traits</h3>
-                    <div id="desk-char-traits"></div>
-                </div>
-
-                <!-- Hire Costs -->
-                <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:15px;">
-                    <div style="background:var(--wood-light); padding:12px; border-radius:5px; text-align:center;">
-                        <div style="font-weight:bold; color:var(--ink);">FULL-TIME</div>
-                        <div id="desk-cost-fulltime" style="font-size:1.2rem; color:var(--gold);">100G</div>
-                        <div style="font-size:0.8rem; color:#666;">+ <span id="desk-wage">10</span>G/day wage</div>
-                    </div>
-                    <div style="background:var(--wood-light); padding:12px; border-radius:5px; text-align:center;">
-                        <div style="font-weight:bold; color:var(--ink);">FREELANCE</div>
-                        <div id="desk-cost-freelance" style="font-size:1.2rem; color:var(--gold);">40G</div>
-                        <div style="font-size:0.8rem; color:#666;">+ 50% quest cut</div>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div style="margin-top:25px; display:flex; gap:10px;">
-                    <button class="btn btn-green" onclick="UI.hireFromDesk('fulltime')" style="flex:1;">✅ Hire
-                        Full-Time</button>
+                <!-- Row 4: Action Buttons with embedded costs (height ~110px) -->
+                <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                    <button class="btn btn-green" onclick="UI.hireFromDesk('fulltime')"
+                        style="padding:8px 6px; text-align:center;">
+                        <div style="font-size:0.8rem;">✅ FULL-TIME</div>
+                        <div id="desk-cost-fulltime" style="font-size:1.05rem; font-weight:bold; margin:2px 0;">110G
+                        </div>
+                        <div style="font-size:0.6rem; opacity:0.9;">+<span id="desk-wage">20</span>G/day wage</div>
+                    </button>
                     <button class="btn" onclick="UI.hireFromDesk('freelance')"
-                        style="flex:1; background:var(--gold-dark); color:#000;">🤝 Hire Freelance</button>
+                        style="padding:8px 6px; background:var(--gold-dark); color:#000; text-align:center;">
+                        <div style="font-size:0.8rem;">🤝 FREELANCE</div>
+                        <div id="desk-cost-freelance" style="font-size:1.05rem; font-weight:bold; margin:2px 0;">44G
+                        </div>
+                        <div style="font-size:0.6rem; opacity:0.8;">+50% quest cut</div>
+                    </button>
                 </div>
                 <button class="btn" onclick="UI.rejectFromDesk()"
-                    style="width:100%; margin-top:10px; background:#555; border-color:#333;">❌ Reject (Next
-                    Adventurer)</button>
+                    style="width:100%; margin-top:6px; padding:7px; background:#444; border-color:#333; font-size:0.8rem;">❌
+                    REJECT → Next</button>
             </div>
 
             <!-- No More Adventurers Message -->
@@ -500,7 +485,8 @@
             <h3 style="margin-top:15px; font-family:var(--font-display); font-size:1.1rem;">Traits</h3>
             <div id="char-modal-traits"></div>
 
-            <button class="btn" onclick="UI.closeCharacterModal()" style="margin-top:20px; width:100%;">Close</button>
+            <button class="btn" onclick="UI.closeCharacterModal()"
+                style="margin-top:20px; width:100%; background:linear-gradient(to bottom, #555, #333); border-color:#666;">Close</button>
         </div>
     </div>
 
@@ -521,16 +507,18 @@
     <!-- SCREEN 4: EVENING REPORT -->
     <div id="screen-evening" class="screen wood-bg">
         <div
-            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-            <div class="quest-scroll" style="width: 500px; height: auto;">
+            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+            <div class="quest-scroll"
+                style="width: 700px; height: auto; max-height:80vh; overflow-y:auto; padding-bottom:80px;">
                 <h3>📜 DAILY LEDGER</h3>
                 <div id="evening-report-content" style="text-align:left; padding:10px;">
                     <!-- Report Details -->
                 </div>
-                <br>
-                <button class="btn btn-green" onclick="UI.startNextDay()"
-                    style="font-size:1.2rem; padding:15px 30px;">💤 Rest Until Dawn</button>
             </div>
+            <!-- Button outside scroll to prevent overlap with scroll decorations -->
+            <button class="btn btn-green" onclick="UI.startNextDay()"
+                style="font-size:1.2rem; padding:15px 40px; margin-top:20px; position:relative; z-index:10;">💤 Rest
+                Until Dawn</button>
         </div>
     </div>
 
@@ -543,6 +531,7 @@
 
     <script src="src/utils/ContentLoader.js"></script>
     <script src="src/core/GameState.js"></script>
+    <script src="src/core/QuestResolver.js"></script>
 
     <script>
         const UI = {
@@ -777,36 +766,33 @@
                 document.getElementById('desk-char-class').innerText = char.className || 'Adventurer';
                 document.getElementById('desk-char-level').innerText = `Level ${char.level}`;
 
-                // Visual Tells (flavor text)
+                // Visual Tells (flavor text - inline, comma-separated)
                 const tells = char.visualTells || [];
                 document.getElementById('desk-visual-tells').innerHTML = tells.length > 0
-                    ? tells.map(t => `• ${t}`).join('<br>')
+                    ? tells.join(' • ')
                     : '<em>Nothing unusual...</em>';
 
-                // Stats (with bars)
+                // Stats (compact inline boxes)
                 const stats = char.baseStats || {};
                 document.getElementById('desk-char-stats').innerHTML = Object.entries(stats).map(([key, val]) => {
                     const pct = (val / 10) * 100;
                     return `
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                <span style="width:30px; text-transform:uppercase; font-weight:bold; font-size:0.8rem;">${key}</span>
-                                <div style="flex:1; height:8px; background:#333; border-radius:4px; overflow:hidden;">
-                                    <div style="width:${pct}%; height:100%; background:var(--gold);"></div>
-                                </div>
-                                <span style="width:20px; text-align:right; font-size:0.9rem;">${val}</span>
-                            </div>
-                        `;
+                        <div style="flex:1; background:#2a2a2a; padding:4px 6px; border-radius:3px; text-align:center;">
+                            <div style="font-size:0.6rem; color:#888; text-transform:uppercase;">${key}</div>
+                            <div style="font-size:0.85rem; font-weight:bold; color:var(--gold);">${val}</div>
+                        </div>
+                    `;
                 }).join('');
 
-                // Traits (all types)
+                // Traits (smaller badges)
                 const allTraits = [
                     ...(char.traits || []),
-                    ...(char.cursedTraits || []).map(t => `⚠️ ${t}`),
-                    ...(char.legendaryTraits || []).map(t => `⭐ ${t}`)
+                    ...(char.cursedTraits || []).map(t => `⚠️${t}`),
+                    ...(char.legendaryTraits || []).map(t => `⭐${t}`)
                 ];
                 document.getElementById('desk-char-traits').innerHTML = allTraits.length > 0
-                    ? allTraits.map(t => `<span style="background:var(--wood-light); padding:3px 8px; border-radius:3px; margin-right:5px; font-size:0.85rem;">${t}</span>`).join('')
-                    : '<em>None visible</em>';
+                    ? allTraits.map(t => `<span style="background:var(--wood-light); padding:2px 5px; border-radius:2px; margin-right:3px; font-size:0.7rem;">${t}</span>`).join('')
+                    : '';
 
                 // Costs
                 const fullCost = char.hireCost || 100;
@@ -932,130 +918,145 @@
                     rosterList.appendChild(div);
                 });
 
-                // Recruits (still available to hire)
-                const recruitList = document.getElementById('guild-recruit-list');
-                recruitList.innerHTML = '';
-                if (window.GameState.availableHires.length === 0) {
-                    recruitList.innerHTML = "<em>No recruits available today.</em>";
-                }
-
-                window.GameState.availableHires.forEach(c => {
-                    const div = document.createElement('div');
-                    div.className = 'char-card';
-                    div.style.background = '#e0e0e0';
-
-                    const fullTimeCost = c.hireCost || 100;
-                    const fullTimeWage = c.dailyWage || 10;
-                    const freelanceCost = Math.floor(fullTimeCost * 0.4);
-
-                    div.innerHTML = `
-                        <div class="char-portrait"></div>
-                        <div style="flex:1;">
-                            <strong>${c.name}</strong><br>
-                            <span style="font-size:0.75rem;">Full-Time: ${fullTimeCost}G + ${fullTimeWage}G/day</span><br>
-                            <span style="font-size:0.75rem;">Freelance: ${freelanceCost}G + 50% cut</span>
-                            <br>
-                            <button class="btn btn-green" style="font-size:0.7rem; padding:3px 6px; margin-top:4px; margin-right:4px;" onclick="event.stopPropagation(); UI.hire('${c.id}', 'fulltime')">Hire Full-Time</button>
-                            <button class="btn" style="font-size:0.7rem; padding:3px 6px; background:#6b8e23; border-color:#556b2f;" onclick="event.stopPropagation(); UI.hire('${c.id}', 'freelance')">Hire Freelance</button>
-                        </div>
-                    `;
-                    recruitList.appendChild(div);
-                });
+                // Recruits are now handled in DESK VIEW - no longer render here
 
                 // Claimed Quests (with assignment UI)
                 const questList = document.getElementById('guild-quest-list');
                 questList.innerHTML = '';
+                questList.style.display = 'flex';
+                questList.style.flexWrap = 'wrap';
+                questList.style.gap = '12px';
+                questList.style.alignItems = 'flex-start';
 
-                // Show active quests in progress first
-                if (window.GameState.activeQuests.length > 0) {
-                    const activeHeader = document.createElement('h3');
-                    activeHeader.style.cssText = 'color: #2196F3; font-family: var(--font-display); margin-bottom: 10px;';
-                    activeHeader.innerText = '🗺️ Quests In Progress';
-                    questList.appendChild(activeHeader);
+                // Show active quests in progress (compact inline)
+                window.GameState.activeQuests.forEach(q => {
+                    const hero = window.GameState.findHeroById(q.assignedHeroId);
+                    const div = document.createElement('div');
+                    div.style.cssText = 'background: rgba(33, 150, 243, 0.15); padding: 10px 14px; border-radius: 6px; border-left: 3px solid #2196F3; min-width:180px;';
+                    div.innerHTML = `
+                        <div style="font-size:0.85rem; font-weight:bold; color:#2196F3;">🗺️ ${q.name}</div>
+                        <div style="font-size:0.75rem; color:#aaa; margin-top:4px;">${hero ? hero.name : '?'} • Day ${q.returnDay}</div>
+                    `;
+                    questList.appendChild(div);
+                });
 
-                    window.GameState.activeQuests.forEach(q => {
-                        const hero = window.GameState.findHeroById(q.assignedHeroId);
-                        const div = document.createElement('div');
-                        div.style.cssText = 'background: rgba(33, 150, 243, 0.2); padding: 12px; margin: 8px 0; border-radius: 4px; border-left: 4px solid #2196F3;';
-                        div.innerHTML = `
-                            <strong>${q.name}</strong><br>
-                            <span style="font-size:0.85rem;">Hero: ${hero ? hero.name : '?'}</span><br>
-                            <span style="font-size:0.85rem; color:#ccc;">Returns: Day ${q.returnDay}</span>
-                        `;
-                        questList.appendChild(div);
-                    });
-                }
-
-                // Then show claimed quests awaiting assignment
-                if (window.GameState.claimedQuests.length === 0 && window.GameState.activeQuests.length === 0) {
-                    questList.innerHTML = "<p style='color:white;'>No quests claimed from Town Hall.</p>";
-                }
-
-                if (window.GameState.claimedQuests.length > 0) {
-                    const claimedHeader = document.createElement('h3');
-                    claimedHeader.style.cssText = 'color: var(--gold); font-family: var(--font-display); margin: 20px 0 10px 0;';
-                    claimedHeader.innerText = '📋 Awaiting Assignment';
-                    questList.appendChild(claimedHeader);
-                }
-
+                // Show claimed quests awaiting assignment (compact cards)
                 window.GameState.claimedQuests.forEach(q => {
                     const div = document.createElement('div');
-                    div.className = 'quest-scroll';
-                    div.style.transform = 'scale(0.9)';
-                    div.style.margin = '10px';
+                    div.style.cssText = 'background: var(--parchment); padding: 12px 14px; border-radius: 6px; border: 2px solid var(--wood-dark); min-width:200px; max-width:240px;';
 
                     const assigned = q.assignedHeroId ? allHeroes.find(h => h.id === q.assignedHeroId) : null;
-                    const duration = parseInt(q.duration) || 1;
+                    const duration = parseInt(q.duration ?? 1);
+                    const rankColor = q.rank === 'S' ? '#9C27B0' : q.rank === 'A' ? '#F44336' : q.rank === 'B' ? '#FF9800' : '#4CAF50';
 
                     let assignmentUI = '';
                     if (assigned) {
                         assignmentUI = `
-                            <div style="background:#e8f5e9; padding:8px; border-radius:4px; margin-top:10px;">
-                                <strong>✅ Assigned: ${assigned.name}</strong><br>
-                                <span style="font-size:0.85rem;">Est. Success: ${UI.calculateMockSuccess(assigned, q)}%</span>
+                            <div style="background:#d4edda; padding:6px; border-radius:3px; margin-top:8px; font-size:0.75rem;">
+                                ✅ ${assigned.name} (${UI.calculateMockSuccess(assigned, q)}%)
                             </div>
-                            <button class="btn" style="font-size:0.8rem; padding:4px 8px; margin-top:8px; background:#999; border-color:#666;" onclick="UI.unassignQuest('${q.id}')">Unassign</button>
+                            <button class="btn" style="font-size:0.7rem; padding:3px 6px; margin-top:6px; background:#888;" onclick="UI.unassignQuest('${q.id}')">Unassign</button>
                         `;
                     } else {
-                        assignmentUI = `
-                            <button class="btn btn-green" style="font-size:0.9rem; padding:6px 12px; margin-top:10px;" onclick="UI.openAssignModal('${q.id}')">Assign Hero</button>
-                        `;
+                        assignmentUI = `<button class="btn btn-green" style="font-size:0.75rem; padding:5px 10px; margin-top:8px; width:100%;" onclick="UI.openAssignModal('${q.id}')">Assign Hero</button>`;
                     }
 
                     div.innerHTML = `
-                        <h3>${q.name}</h3>
-                        <p style="font-size:0.85rem;">Rank: ${q.rank} | Reward: ${q.rewards.gold}G</p>
-                        <p style="font-size:0.8rem; color:#666;">Duration: ${duration} day(s)</p>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong style="font-size:0.9rem; color:var(--ink);">${q.name}</strong>
+                            <span style="background:${rankColor}; color:white; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold;">${q.rank}</span>
+                        </div>
+                        <div style="font-size:0.75rem; color:#666; margin-top:4px;">${q.rewards.gold}G • ${duration} day${duration > 1 ? 's' : ''}</div>
                         ${assignmentUI}
                     `;
                     questList.appendChild(div);
                 });
+
+                if (window.GameState.claimedQuests.length === 0 && window.GameState.activeQuests.length === 0) {
+                    questList.innerHTML = "<p style='color:#888; font-style:italic;'>No quests claimed. Visit Town Hall!</p>";
+                }
             },
 
             renderLedger() {
                 const log = window.GameState.dailyLog;
                 const container = document.getElementById('evening-report-content');
 
-                let html = `<h4>Income</h4><ul>`;
+                let html = '';
+
+                // === QUEST RESULTS (Rich Narratives) ===
+                if (log.questResults && log.questResults.length > 0) {
+                    html += `<h4 style="color:var(--ink); font-family:var(--font-display); border-bottom:2px solid var(--ink); padding-bottom:8px;">⚔️ Quest Results</h4>`;
+
+                    log.questResults.forEach(result => {
+                        // Darker, more professional colors
+                        const outcomeStyles = {
+                            'LEGENDARY': { bg: '#4a148c', border: '#7b1fa2', text: 'Legendary!' },
+                            'GREAT': { bg: '#1b5e20', border: '#2e7d32', text: 'Great Success' },
+                            'SUCCESS': { bg: '#33691e', border: '#558b2f', text: 'Success' },
+                            'PARTIAL': { bg: '#e65100', border: '#f57c00', text: 'Partial' },
+                            'FAILURE': { bg: '#b71c1c', border: '#c62828', text: 'Failed' },
+                            'DISASTER': { bg: '#4a0000', border: '#8b0000', text: 'Disaster!' }
+                        };
+                        const style = outcomeStyles[result.outcome] || outcomeStyles['SUCCESS'];
+
+                        html += `
+                            <div style="background:${style.bg}; padding:12px; margin:10px 0; border-radius:6px; border-left:4px solid ${style.border}; color:#fff;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <strong style="font-size:1rem; color:#fff;">${result.questName}</strong>
+                                    <span style="background:rgba(255,255,255,0.2); color:#fff; padding:3px 10px; border-radius:4px; font-size:0.75rem; font-weight:bold; text-transform:uppercase;">
+                                        ${style.text}
+                                    </span>
+                                </div>
+                                <p style="font-style:italic; color:rgba(255,255,255,0.85); margin:8px 0; line-height:1.4; font-size:0.9rem;">"${result.story}"</p>
+                                <div style="font-size:0.8rem; color:rgba(255,255,255,0.7); margin-top:8px;">
+                                    🧙 ${result.heroName} • 📊 ${result.successRate}% chance
+                                    ${result.goldEarned > 0 ? ` • <span style="color:#ffd54f; font-weight:bold;">+${result.goldEarned}G</span>` : ''}
+                                    ${result.freelancerCut > 0 ? ` • <span style="color:#ff8a80;">-${result.freelancerCut}G cut</span>` : ''}
+                                </div>
+                                ${result.died ? `<div style="color:#ffcdd2; font-weight:bold; margin-top:8px; padding:5px; background:rgba(0,0,0,0.3); border-radius:4px;">💀 ${result.heroName} has fallen...</div>` : ''}
+                                ${result.injury ? `<div style="color:#ffe0b2; margin-top:8px;">🩹 Injured: ${result.injury.label} (${result.recoveryDays} days recovery)</div>` : ''}
+                                ${result.specialEvents && result.specialEvents.length > 0 ?
+                                `<div style="color:#b3e5fc; margin-top:8px; font-size:0.85rem;">✨ ${result.specialEvents.map(e => e.text).join(' ')}</div>` : ''}
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `<p style="color:var(--ink); font-style:italic;">No quests completed today.</p>`;
+                }
+
+                // === FINANCIAL SUMMARY ===
+                html += `<hr style="border:0; border-top:1px solid #444; margin:20px 0;">`;
+                html += `<h4>💰 Financial Summary</h4>`;
+
+                html += `<div style="display:flex; gap:20px;">`;
+
+                // Income column
+                html += `<div style="flex:1;"><strong style="color:#4CAF50;">Income</strong><ul style="margin:5px 0; padding-left:20px;">`;
                 let totalIncome = 0;
                 log.income.forEach(item => {
-                    html += `<li>${item.source}: +${item.amount}G</li>`;
+                    html += `<li style="color:#8BC34A;">+${item.amount}G <span style="color:#888; font-size:0.85rem;">${item.source}</span></li>`;
                     totalIncome += item.amount;
                 });
-                if (log.income.length === 0) html += "<li>None</li>";
-                html += `</ul>`;
+                if (log.income.length === 0) html += "<li style='color:#666;'>None</li>";
+                html += `</ul></div>`;
 
-                html += `<h4>Expenses</h4><ul>`;
+                // Expenses column
+                html += `<div style="flex:1;"><strong style="color:#F44336;">Expenses</strong><ul style="margin:5px 0; padding-left:20px;">`;
                 let totalExp = 0;
                 log.expenses.forEach(item => {
-                    html += `<li>${item.source}: -${item.amount}G</li>`;
+                    html += `<li style="color:#ef5350;">-${item.amount}G <span style="color:#888; font-size:0.85rem;">${item.source}</span></li>`;
                     totalExp += item.amount;
                 });
-                html += `</ul>`;
+                html += `</ul></div>`;
 
+                html += `</div>`;
+
+                // Net total
                 const net = totalIncome - totalExp;
-                const color = net >= 0 ? 'green' : 'red';
-                html += `<hr><h3>Net: <span style="color:${color}">${net} G</span></h3>`;
+                const netColor = net >= 0 ? '#4CAF50' : '#F44336';
+                const netSign = net >= 0 ? '+' : '';
+                html += `<hr style="border:0; border-top:1px solid #444; margin:15px 0;">`;
+                html += `<h3 style="text-align:center;">Net: <span style="color:${netColor}; font-size:1.3rem;">${netSign}${net} G</span></h3>`;
 
                 container.innerHTML = html;
             },
@@ -1069,13 +1070,14 @@
                 document.getElementById('char-modal-type').innerText = char.hireCategory ? `Hired as: ${char.hireCategory}` : '';
 
                 // Stats
-                const stats = char.stats || { STR: 5, INT: 5, DEX: 5, VIT: 5 };
+                const stats = char.baseStats || { str: 5, int: 5, dex: 5, vit: 5 };
                 let statsHTML = '';
                 for (let [stat, value] of Object.entries(stats)) {
                     const barFill = Math.round((value / 10) * 100);
+                    const statLabel = stat.toUpperCase();
                     statsHTML += `
                         <div style="margin-bottom:8px;">
-                            <span style="display:inline-block; width:35px; font-weight:bold;">${stat}:</span>
+                            <span style="display:inline-block; width:35px; font-weight:bold;">${statLabel}:</span>
                             <div style="display:inline-block; width:150px; height:12px; background:#ddd; border:1px solid #999; vertical-align:middle;">
                                 <div style="width:${barFill}%; height:100%; background:#4CAF50;"></div>
                             </div>
@@ -1113,7 +1115,8 @@
                 this.currentAssignQuestId = questId;
                 document.getElementById('assign-quest-name').innerText = quest.name;
 
-                const duration = parseInt(quest.duration) || 1;
+                const duration = parseInt(quest.duration ?? 1);
+                const rankColor = quest.rank === 'S' ? '#9C27B0' : quest.rank === 'A' ? '#F44336' : quest.rank === 'B' ? '#FF9800' : '#4CAF50';
 
                 // Combine roster + freelancers
                 const allHeroes = [
@@ -1124,8 +1127,28 @@
                 const heroList = document.getElementById('assign-hero-list');
                 heroList.innerHTML = '';
 
-                // Show quest info
-                heroList.innerHTML = `<p style="margin-bottom:10px; color:#666;">Duration: ${duration} day(s) | Returns: Day ${window.GameState.day + duration}</p>`;
+                // Show detailed quest info panel
+                const reqStat = quest.requirements?.stat?.toUpperCase() || quest.requirements?.primary || 'STR';
+                const reqMin = quest.requirements?.min || 5;
+                heroList.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #f5f0e6 0%, #ebe5d8 100%); padding:12px; border-radius:6px; margin-bottom:15px; border-left:4px solid ${rankColor}; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                            <span style="background:${rankColor}; color:white; padding:3px 10px; border-radius:4px; font-size:0.8rem; font-weight:bold;">Rank ${quest.rank}</span>
+                            <span style="font-size:0.85rem; color:#555;">📅 ${duration} day${duration > 1 ? 's' : ''} → Returns Day ${window.GameState.day + duration}</span>
+                        </div>
+                        <div style="font-size:0.85rem; color:#444; margin-bottom:6px;">
+                            <strong>Type:</strong> ${quest.type || 'Adventure'}
+                        </div>
+                        <div style="font-size:0.85rem; color:#444; margin-bottom:6px;">
+                            <strong>Requires:</strong> ${reqStat} ${reqMin}+ recommended
+                        </div>
+                        <div style="font-size:0.85rem; color:#444; margin-bottom:6px;">
+                            <strong>Reward:</strong> <span style="color:#2e7d32; font-weight:bold;">${quest.rewards?.gold || 50}G</span>
+                        </div>
+                        ${quest.description ? `<div style="font-size:0.8rem; color:#666; font-style:italic; margin-top:8px; padding-top:8px; border-top:1px solid #ddd;">"${quest.description}"</div>` : ''}
+                    </div>
+                    <h4 style="margin:0 0 10px 0; font-size:0.95rem; color:var(--ink);">Select Hero:</h4>
+                `;
 
                 const availableHeroes = allHeroes.filter(h =>
                     window.GameState.isHeroAvailable(h.id) && !window.GameState.isHeroAssigned(h.id)
