@@ -532,6 +532,7 @@
     <script src="src/utils/ContentLoader.js"></script>
     <script src="src/core/GameState.js"></script>
     <script src="src/core/QuestResolver.js"></script>
+    <script src="src/ui/QuestMap.js"></script>
 
     <script>
         const UI = {
@@ -1022,6 +1023,15 @@
                     });
                 } else {
                     html += `<p style="color:var(--ink); font-style:italic;">No quests completed today.</p>`;
+                }
+
+                // === ADVENTURE MAP (Active Quests In Progress) ===
+                if (window.GameState.activeQuests && window.GameState.activeQuests.length > 0) {
+                    html += window.QuestMap.render(
+                        window.GameState.activeQuests,
+                        window.GameState,
+                        window.GameState.day
+                    );
                 }
 
                 // === FINANCIAL SUMMARY ===

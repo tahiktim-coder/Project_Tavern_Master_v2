@@ -113,7 +113,7 @@ class GameState {
 
             // Apply reputation change
             if (result.reputationChange !== 0) {
-                this.reputation += result.reputationChange;
+                this.reputation.town += result.reputationChange;
             }
 
             // Apply consequences to hero
