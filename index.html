@@ -1427,7 +1427,13 @@
                                     ${result.freelancerCut > 0 ? ` • <span style="color:#ff8a80;">-${result.freelancerCut}G cut</span>` : ''}
                                 </div>
                                 ${result.died ? `<div style="color:#ffcdd2; font-weight:bold; margin-top:8px; padding:5px; background:rgba(0,0,0,0.3); border-radius:4px;">💀 ${result.heroName} has fallen...</div>` : ''}
-                                ${result.injury ? `<div style="color:#ffe0b2; margin-top:8px;">🩹 Injured: ${result.injury.label} (${result.recoveryDays} days recovery)</div>` : ''}
+                                ${result.injury ? `
+                                    <div style="color:#ffe0b2; margin-top:8px; padding:8px; background:rgba(0,0,0,0.2); border-radius:4px;">
+                                        <div style="font-weight:bold;">🩹 ${result.injury.label} (${result.recoveryDays} days recovery)</div>
+                                        ${result.injuryNarrative ? `<div style="font-style:italic; font-size:0.85rem; margin-top:4px; color:#ffcc80;">${result.injuryNarrative}</div>` : ''}
+                                        ${result.scarGained ? `<div style="color:#ff8a65; font-size:0.8rem; margin-top:4px;">⚔️ Permanent scar: ${result.scarGained.label}</div>` : ''}
+                                    </div>
+                                ` : ''}
                                 ${result.specialEvents && result.specialEvents.length > 0 ?
                                 `<div style="color:#b3e5fc; margin-top:8px; font-size:0.85rem;">✨ ${result.specialEvents.map(e => e.text).join(' ')}</div>` : ''}
                             </div>

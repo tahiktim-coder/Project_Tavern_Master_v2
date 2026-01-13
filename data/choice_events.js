@@ -337,8 +337,97 @@ const CHOICE_EVENTS = [
                 effects: { townRep: -1, addFlag: 'ignored_cult_warning' }
             }
         ]
+    },
+
+    // ============================================
+    // STORY ARC EVENTS - Noble's Conspiracy
+    // ============================================
+
+    {
+        id: 'noble_conspiracy_start',
+        phase: 'EVENING',
+        probability: 0.30,
+        oneTime: true,
+        conditions: { minDay: 5, minTownRep: 3 },
+        title: "A Hushed Warning",
+        description: "After the day's work, a servant in House Ashford livery approaches you nervously. \"My master... Lord Ashford... he's been meeting strange folk. Mercenaries, assassins maybe. I fear something terrible is planned. Please, someone must investigate before it's too late.\"",
+        choices: [
+            {
+                text: "Agree to look into it (A noble conspiracy?)",
+                effects: { addFlag: 'noble_rumors_heard', crownRep: 1 }
+            },
+            {
+                text: "Refuse (Not our business)",
+                effects: { gold: 20, addFlag: 'ignored_noble_warning' }
+            }
+        ]
+    },
+
+    // ============================================
+    // MORE VARIETY EVENTS
+    // ============================================
+
+    {
+        id: 'retired_hero',
+        phase: 'MORNING',
+        probability: 0.08,
+        oneTime: true,
+        conditions: { minDay: 7 },
+        title: "The Old Legend",
+        description: "A grizzled old man hobbles in, leaning on a gnarled staff. \"You don't know me, but years ago I was the greatest hero this kingdom ever saw. Baron the Bold, they called me. I'm too old for quests now, but I can teach your young ones a thing or two... for a modest fee.\"",
+        choices: [
+            {
+                text: "Hire him as a trainer (50G - permanent XP bonus)",
+                effects: { gold: -50, addFlag: 'trainer_baron', xpBonus: 10 }
+            },
+            {
+                text: "Politely decline (We can't afford it)",
+                effects: { townRep: -1 }
+            }
+        ]
+    },
+
+    {
+        id: 'cursed_item',
+        phase: 'EVENING',
+        probability: 0.10,
+        oneTime: true,
+        conditions: { minDay: 4, mustHaveCompletedQuests: 3 },
+        title: "A Strange Trinket",
+        description: "While sorting through today's loot, you find an odd black amulet that wasn't there before. It pulses with a faint warmth and seems to whisper promises of power. Your heroes look at you uneasily.",
+        choices: [
+            {
+                text: "Keep it (Power is power)",
+                effects: { addFlag: 'cursed_amulet_kept', goldMultiplier: 1.1 }
+            },
+            {
+                text: "Destroy it immediately",
+                effects: { townRep: 1, crownRep: 1 }
+            }
+        ]
+    },
+
+    {
+        id: 'guild_rivalry',
+        phase: 'TOWN_HALL',
+        probability: 0.12,
+        cooldownDays: 15,
+        conditions: { minDay: 6, minTownRep: 4 },
+        title: "A Rival's Challenge",
+        description: "A messenger from the Steel Fang Guild delivers a sealed letter. \"Our master challenges your guild to a formal competition. Send your best to the Arena in 3 days. Winner takes 500 gold from the loser. Decline, and everyone will know you're weak.\"",
+        choices: [
+            {
+                text: "Accept the challenge",
+                effects: { addFlag: 'arena_challenge_accepted' }
+            },
+            {
+                text: "Decline (We have nothing to prove)",
+                effects: { townRep: -2, crownRep: -1 }
+            }
+        ]
     }
 ];
 
 // Expose globally
 window.CHOICE_EVENTS = CHOICE_EVENTS;
+
