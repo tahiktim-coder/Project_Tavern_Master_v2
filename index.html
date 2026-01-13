@@ -480,133 +480,82 @@
         </div>
     </div>
 
-    <!-- SCREEN 2.5: DESK VIEW (Adventurer Queue) - Immersive Interview Style -->
-    <div id="screen-desk" class="screen" style="background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 100%);">
+    <!-- SCREEN 2.5: DESK VIEW (Adventurer Queue) -->
+    <div id="screen-desk" class="screen" style="background: var(--bg-dark);">
         <div class="header-bar">
             <span>📋 YOUR DESK</span>
             <div id="desk-queue-indicator">Waiting: <span id="desk-queue-count">0</span> adventurers</div>
             <button class="btn" onclick="UI.skipToRoster()" id="skip-to-roster-btn">Skip to Roster ➔</button>
         </div>
 
-        <div
-            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
 
-            <!-- Main Interview Area -->
-            <div id="desk-adventurer-card" style="max-width:650px; width:100%;">
-
-                <!-- Speech Bubble (Random Greeting) -->
-                <div id="desk-speech-bubble" style="
-                    background: #f5f0e1;
-                    border-radius: 15px 15px 15px 0;
-                    padding: 15px 20px;
-                    margin-bottom: 15px;
-                    position: relative;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                ">
-                    <p id="desk-adventurer-greeting" style="
-                        margin: 0;
-                        font-size: 1.1rem;
-                        font-style: italic;
-                        color: #2c1810;
-                        line-height: 1.4;
-                    ">"Loading..."</p>
-                    <!-- Speech bubble tail -->
-                    <div style="
-                        position: absolute;
-                        bottom: -10px;
-                        left: 30px;
-                        width: 0;
-                        height: 0;
-                        border-left: 15px solid #f5f0e1;
-                        border-bottom: 15px solid transparent;
-                    "></div>
-                </div>
-
-                <!-- Adventurer Card (Larger, more detailed) -->
-                <div class="quest-scroll" style="padding: 20px; border: 3px solid var(--wood-dark);">
-
-                    <!-- Top Row: Portrait + Name/Class/Level -->
-                    <div style="display:flex; gap:20px; align-items:flex-start;">
-                        <div
-                            style="width:100px; height:120px; background:#555; border:3px solid var(--wood-dark); flex-shrink:0;">
-                        </div>
-                        <div style="flex:1;">
-                            <h2 id="desk-char-name"
-                                style="font-family:var(--font-display); margin:0 0 5px 0; font-size:1.5rem; color:var(--ink);">
-                            </h2>
-                            <div style="color:#666; font-size:0.95rem;">
-                                <span id="desk-char-class"></span> • <span id="desk-char-level"></span>
-                            </div>
-
-                            <!-- Visual Tells (Observation) -->
-                            <div id="desk-visual-tells" style="
-                                margin-top: 12px;
-                                padding: 10px 12px;
-                                background: rgba(0,0,0,0.08);
-                                border-left: 3px solid var(--gold);
-                                font-style: italic;
-                                color: #555;
-                                font-size: 0.85rem;
-                                line-height: 1.5;
-                            ">
-                                <strong style="color:#333;">You notice:</strong> <span
-                                    id="desk-visual-tells-text"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Stats Row -->
-                    <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
-                        <div
-                            style="font-size:0.75rem; color:#888; margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">
-                            Combat Stats</div>
-                        <div id="desk-char-stats" style="display:flex; gap:8px;"></div>
-                    </div>
-
-                    <!-- Traits Row -->
-                    <div id="desk-char-traits" style="margin-top:12px;"></div>
-
-                    <!-- Hiring Options -->
-                    <div style="margin-top:20px; padding-top:15px; border-top:2px solid var(--wood-light);">
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                            <button class="btn btn-green" onclick="UI.hireFromDesk('fulltime')"
-                                style="padding:12px 10px; text-align:center;">
-                                <div style="font-size:0.9rem; font-weight:bold;">✅ HIRE FULL-TIME</div>
-                                <div id="desk-cost-fulltime"
-                                    style="font-size:1.3rem; font-weight:bold; margin:4px 0; color:#fff;">110G</div>
-                                <div style="font-size:0.7rem; opacity:0.9;">+<span id="desk-wage">20</span>G daily wage
-                                </div>
-                            </button>
-                            <button class="btn" onclick="UI.hireFromDesk('freelance')"
-                                style="padding:12px 10px; background:linear-gradient(to bottom, #d4af37, #b8962e); color:#000; text-align:center; border-color:#8b7500;">
-                                <div style="font-size:0.9rem; font-weight:bold;">🤝 FREELANCE</div>
-                                <div id="desk-cost-freelance" style="font-size:1.3rem; font-weight:bold; margin:4px 0;">
-                                    44G</div>
-                                <div style="font-size:0.7rem; opacity:0.85;">One quest, +50% cut</div>
-                            </button>
-                        </div>
-                        <button class="btn" onclick="UI.rejectFromDesk()"
-                            style="width:100%; margin-top:10px; padding:10px; background:#555; border-color:#333; font-size:0.9rem;">
-                            ❌ REJECT → Next Adventurer
-                        </button>
-                    </div>
-                </div>
+            <!-- Speech Bubble (Random Greeting) -->
+            <div id="desk-speech-bubble"
+                style="max-width:400px; background:rgba(255,255,255,0.95); border-radius:8px; padding:10px 16px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                <p id="desk-adventurer-greeting"
+                    style="margin:0; font-size:0.9rem; font-style:italic; color:#2c1810; text-align:center;">"..."</p>
             </div>
 
-            <!-- No More Adventurers Message -->
-            <div id="desk-empty-message"
-                style="display:none; text-align:center; color:var(--parchment); max-width:500px;">
-                <h2 style="font-family:var(--font-display); color:var(--gold); font-size:2rem;">☕ Queue Empty</h2>
-                <p style="font-size:1.1rem; line-height:1.6; margin:20px 0;">No more adventurers waiting today. Time to
-                    assign your heroes to quests.</p>
-                <button class="btn btn-green" onclick="UI.skipToRoster()"
-                    style="margin-top:20px; font-size:1.3rem; padding:18px 50px;">
-                    Go to Roster ➔
+            <!-- Adventurer Card - Compact design -->
+            <div id="desk-adventurer-card" class="quest-scroll" style="width:400px; max-width:92%; padding:14px;">
+
+                <!-- Row 1: Portrait + Name/Class -->
+                <div style="display:flex; gap:12px;">
+                    <div
+                        style="width:64px; height:64px; background:#555; border:2px solid var(--wood-dark); flex-shrink:0;">
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <h2 id="desk-char-name"
+                            style="font-family:var(--font-display); margin:0; font-size:1.1rem; line-height:1.2;"></h2>
+                        <div style="color:#888; font-size:0.8rem; margin-top:2px;">
+                            <span id="desk-char-class"></span> • <span id="desk-char-level"></span>
+                        </div>
+                        <div id="desk-char-traits" style="margin-top:5px;"></div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Visual Tells -->
+                <div id="desk-visual-tells"
+                    style="margin-top:8px; padding:5px 8px; background:rgba(0,0,0,0.15); border-radius:3px; font-style:italic; color:#eee; font-size:0.72rem; line-height:1.4;">
+                </div>
+
+                <!-- Row 3: Stats -->
+                <div id="desk-char-stats" style="margin-top:8px; display:flex; gap:4px;"></div>
+
+                <!-- Row 4: Buttons -->
+                <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                    <button class="btn btn-green" onclick="UI.hireFromDesk('fulltime')"
+                        style="padding:8px 6px; text-align:center;">
+                        <div style="font-size:0.8rem;">✅ FULL-TIME</div>
+                        <div id="desk-cost-fulltime" style="font-size:1.05rem; font-weight:bold; margin:2px 0;">110G
+                        </div>
+                        <div style="font-size:0.6rem; opacity:0.9;">+<span id="desk-wage">20</span>G/day wage</div>
+                    </button>
+                    <button class="btn" onclick="UI.hireFromDesk('freelance')"
+                        style="padding:8px 6px; background:var(--gold-dark); color:#000; text-align:center;">
+                        <div style="font-size:0.8rem;">🤝 FREELANCE</div>
+                        <div id="desk-cost-freelance" style="font-size:1.05rem; font-weight:bold; margin:2px 0;">44G
+                        </div>
+                        <div style="font-size:0.6rem; opacity:0.8;">+50% quest cut</div>
+                    </button>
+                </div>
+                <button class="btn" onclick="UI.rejectFromDesk()"
+                    style="width:100%; margin-top:6px; padding:7px; background:#444; border-color:#333; font-size:0.8rem;">
+                    ❌ REJECT → Next
                 </button>
             </div>
 
-            <!-- Queue Indicator Dots -->
-            <div id="desk-queue-dots" style="margin-top:25px; display:flex; gap:10px;"></div>
+            <!-- No More Adventurers Message -->
+            <div id="desk-empty-message" style="display:none; text-align:center; color:var(--parchment);">
+                <h2 style="font-family:var(--font-display); color:var(--gold);">No More Visitors Today</h2>
+                <p>The queue is empty. Head to your roster to manage quests.</p>
+                <button class="btn btn-green" onclick="UI.skipToRoster()"
+                    style="margin-top:20px; font-size:1.2rem; padding:15px 40px;">Go to Roster ➔</button>
+            </div>
+
+            <!-- Queue Dots -->
+            <div id="desk-queue-dots" style="margin-top:20px; display:flex; gap:8px;"></div>
         </div>
     </div>
 
@@ -1168,22 +1117,11 @@
                 document.getElementById('desk-char-class').innerText = char.className || 'Adventurer';
                 document.getElementById('desk-char-level').innerText = `Level ${char.level}`;
 
-                // Visual Tells (flavor text - now in new layout)
+                // Visual Tells (flavor text)
                 const tells = char.visualTells || [];
-                const tellsText = tells.length > 0
+                document.getElementById('desk-visual-tells').innerHTML = tells.length > 0
                     ? tells.join(' • ')
-                    : 'Nothing unusual...';
-
-                // Update the visual tells text span in the new layout
-                const tellsContainer = document.getElementById('desk-visual-tells-text');
-                if (tellsContainer) {
-                    tellsContainer.innerText = tellsText;
-                } else {
-                    // Fallback for old layout
-                    document.getElementById('desk-visual-tells').innerHTML = tells.length > 0
-                        ? tells.join(' • ')
-                        : '<em>Nothing unusual...</em>';
-                }
+                    : '<em>Nothing unusual...</em>';
 
                 // Stats (compact inline boxes)
                 const stats = char.baseStats || {};
