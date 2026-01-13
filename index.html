@@ -660,6 +660,7 @@
     <script src="data/characters.js"></script>
     <script src="data/choice_events.js"></script>
     <script src="data/combat_pools.js"></script>
+    <script src="data/injuries.js"></script>
 
     <script src="src/utils/ContentLoader.js"></script>
     <script src="src/events/ChoiceEventSystem.js"></script>
@@ -1245,12 +1246,18 @@
                         '<span style="background:#d4af37; color:#000; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold;">FREELANCE</span>' :
                         '<span style="background:#4CAF50; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.7rem; font-weight:bold;">FULL-TIME</span>';
 
-                    // Status badge
+                    // Status badge (enhanced for injuries)
                     let statusBadge = '';
                     const isAssigned = window.GameState.isHeroAssigned(c.id);
 
                     if (c.status === 'ON_QUEST') {
                         statusBadge = `<br><span style="background:#2196F3; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.65rem;">🗺️ ON QUEST (Returns Day ${c.busyUntilDay})</span>`;
+                        div.style.opacity = '0.7';
+                    } else if (c.status === 'INJURED' && c.injury) {
+                        // Show specific injury info
+                        const recoveryRemaining = (c.busyUntilDay || 0) - window.GameState.day;
+                        const recoveryText = recoveryRemaining > 0 ? `${recoveryRemaining}d rest` : 'Healing';
+                        statusBadge = `<br><span style="background:#FF5722; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.65rem;">🩹 ${c.injury.label || 'Injured'} (${recoveryText})</span>`;
                         div.style.opacity = '0.7';
                     } else if (c.status === 'INJURED') {
                         statusBadge = `<br><span style="background:#FF5722; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.65rem;">🩹 INJURED</span>`;
@@ -1259,12 +1266,19 @@
                         statusBadge = `<br><span style="background:#9C27B0; color:#fff; padding:2px 6px; border-radius:3px; font-size:0.65rem;">📋 ASSIGNED</span>`;
                     }
 
+                    // Show scars if any
+                    let scarBadge = '';
+                    if (c.scars && c.scars.length > 0) {
+                        scarBadge = `<br><span style="color:#aa8888; font-size:0.6rem; font-style:italic;">⚔️ ${c.scars.map(s => s.label).join(', ')}</span>`;
+                    }
+
                     div.innerHTML = `
                         <div class="char-portrait"></div>
                         <div style="flex:1;">
                             <strong>${c.name}</strong> ${hireBadge}<br>
                             <span style="font-size:0.8rem">Lvl ${c.level || 1} ${c.className || 'Adventurer'}</span>
                             ${statusBadge}
+                            ${scarBadge}
                         </div>
                     `;
                     rosterList.appendChild(div);

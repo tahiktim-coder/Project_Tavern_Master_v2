@@ -184,6 +184,30 @@ class GameState {
                 hero.status = 'INJURED';
                 hero.injury = result.injury;
                 hero.busyUntilDay = this.day + result.recoveryDays;
+                hero.injuryNarrative = result.injuryNarrative || null;
+
+                // Apply permanent scar if gained
+                if (result.scarGained) {
+                    hero.scars = hero.scars || [];
+                    hero.scars.push(result.scarGained);
+                    console.log(`⚔️ ${hero.name} gained a permanent scar: ${result.scarGained.label}`);
+
+                    // Add scar's visual tell to hero's visualTells
+                    hero.visualTells = hero.visualTells || [];
+                    if (result.scarGained.visualTell) {
+                        hero.visualTells.push(result.scarGained.visualTell);
+                    }
+                }
+
+                // Apply permanent stat effects from critical injuries
+                if (result.injury.permanentEffect) {
+                    Object.entries(result.injury.permanentEffect).forEach(([stat, penalty]) => {
+                        if (hero.baseStats && hero.baseStats[stat] !== undefined) {
+                            hero.baseStats[stat] = Math.max(1, hero.baseStats[stat] + penalty);
+                            console.log(`💔 ${hero.name}'s ${stat} permanently reduced by ${Math.abs(penalty)}`);
+                        }
+                    });
+                }
             } else {
                 hero.status = 'IDLE';
                 hero.busyUntilDay = null;
@@ -291,6 +315,19 @@ class GameState {
 
     nextDay() {
         this.day++;
+
+        // Check for healed injured heroes
+        const allHeroes = [...this.roster, ...this.freelancers];
+        allHeroes.forEach(hero => {
+            if (hero.status === 'INJURED' && hero.busyUntilDay && this.day >= hero.busyUntilDay) {
+                console.log(`💚 ${hero.name} has recovered from their injury!`);
+                hero.status = 'IDLE';
+                hero.injury = null;
+                hero.injuryNarrative = null;
+                hero.busyUntilDay = null;
+            }
+        });
+
         this.startMorning();
         return this.day;
     }

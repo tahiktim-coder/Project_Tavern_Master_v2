@@ -422,14 +422,20 @@ class QuestResolver {
     calculateConsequences(hero, quest, outcome) {
         const consequences = {
             injury: null,
+            injuryNarrative: null,
             died: false,
             moralChange: 0,
-            recoveryDays: 0
+            recoveryDays: 0,
+            scarGained: null
         };
 
         // Death/injury chances by quest rank
         const DEATH_CHANCES = { 'F': 0.01, 'D': 0.03, 'C': 0.06, 'B': 0.12, 'A': 0.20, 'S': 0.35 };
         const deathChance = DEATH_CHANCES[quest.rank] || 0.05;
+
+        // Get injury pools from new data
+        const injuryData = window.GAME_DATA?.injuries;
+        const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
         switch (outcome.tier) {
             case 'LEGENDARY':
@@ -443,9 +449,9 @@ class QuestResolver {
             case 'SUCCESS':
                 consequences.moralChange = 5;
                 // Small chance of minor injury even on success
-                if (Math.random() < 0.10) {
-                    consequences.injury = this.INJURY_TYPES[0]; // Bruised
-                    consequences.recoveryDays = 1;
+                if (Math.random() < 0.10 && injuryData?.minor) {
+                    consequences.injury = pickRandom(injuryData.minor);
+                    consequences.recoveryDays = consequences.injury.recovery;
                 }
                 break;
 
@@ -453,9 +459,11 @@ class QuestResolver {
                 consequences.moralChange = -5;
                 // Moderate injury likely
                 if (Math.random() < 0.50) {
-                    const injuryIndex = Math.random() < 0.7 ? 0 : 1;
-                    consequences.injury = this.INJURY_TYPES[injuryIndex];
-                    consequences.recoveryDays = consequences.injury.recoveryDays;
+                    const pool = Math.random() < 0.7 ? injuryData?.minor : injuryData?.moderate;
+                    if (pool) {
+                        consequences.injury = pickRandom(pool);
+                        consequences.recoveryDays = consequences.injury.recovery;
+                    }
                 }
                 break;
 
@@ -463,9 +471,16 @@ class QuestResolver {
                 consequences.moralChange = -10;
                 // Injury very likely
                 if (Math.random() < 0.70) {
-                    const injuryIndex = Math.floor(Math.random() * 3); // 0-2
-                    consequences.injury = this.INJURY_TYPES[injuryIndex];
-                    consequences.recoveryDays = consequences.injury.recoveryDays;
+                    const roll = Math.random();
+                    let pool;
+                    if (roll < 0.3) pool = injuryData?.minor;
+                    else if (roll < 0.8) pool = injuryData?.moderate;
+                    else pool = injuryData?.major;
+
+                    if (pool) {
+                        consequences.injury = pickRandom(pool);
+                        consequences.recoveryDays = consequences.injury.recovery;
+                    }
                 }
                 break;
 
@@ -475,19 +490,39 @@ class QuestResolver {
                 if (Math.random() < deathChance) {
                     consequences.died = true;
                 } else {
-                    // Serious injury if survived
-                    const injuryIndex = 2 + Math.floor(Math.random() * 2); // 2-3 (major or critical)
-                    consequences.injury = this.INJURY_TYPES[injuryIndex];
-                    consequences.recoveryDays = consequences.injury.recoveryDays;
+                    // Serious injury if survived - major or critical
+                    const pool = Math.random() < 0.6 ? injuryData?.major : injuryData?.critical;
+                    if (pool) {
+                        consequences.injury = pickRandom(pool);
+                        consequences.recoveryDays = consequences.injury.recovery;
+                    }
                 }
                 break;
+        }
+
+        // Generate injury narrative if injured
+        if (consequences.injury) {
+            const narratives = window.GAME_DATA?.injuryNarratives?.[quest.type] || [];
+            const baseNarrative = consequences.injury.narrative.replace('{hero}', hero.name);
+            const contextNarrative = narratives.length > 0 ? pickRandom(narratives).replace('{hero}', hero.name) : '';
+            consequences.injuryNarrative = contextNarrative ? `${contextNarrative} ${baseNarrative}` : baseNarrative;
+
+            // Roll for permanent scar
+            if (consequences.injury.scarChance && Math.random() < consequences.injury.scarChance) {
+                const scars = window.GAME_DATA?.scars || [];
+                if (scars.length > 0) {
+                    consequences.scarGained = pickRandom(scars);
+                }
+            }
         }
 
         // Check for "Undying" trait
         if (consequences.died && (hero.hiddenTraits?.includes('Undying') || hero.traits?.includes('Undying'))) {
             consequences.died = false;
-            consequences.injury = this.INJURY_TYPES[3]; // Critical instead
-            consequences.recoveryDays = 5;
+            if (injuryData?.critical) {
+                consequences.injury = pickRandom(injuryData.critical);
+                consequences.recoveryDays = consequences.injury.recovery;
+            }
             consequences.undyingSaved = true;
         }
 
