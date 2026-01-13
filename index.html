@@ -135,6 +135,11 @@
             bottom: -10px;
         }
 
+        /* Hide bottom scroll decoration in evening report to prevent overlap */
+        #screen-evening .quest-scroll::after {
+            display: none;
+        }
+
         .quest-scroll:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6);
@@ -272,8 +277,10 @@
                         id="hud-day">1</span></span>
                 <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--gold);">💰 <span
                         id="hud-gold">350</span> G</span>
-                <span style="font-family:var(--font-display); font-size:1rem; color:#aaa;">⭐ Rep: <span
+                <span style="font-family:var(--font-display); font-size:1rem; color:#aaa;">⭐ Town: <span
                         id="hud-rep">5</span></span>
+                <span style="font-family:var(--font-display); font-size:1rem; color:#9370db;">👑 Crown: <span
+                        id="hud-crown-rep">0</span></span>
             </div>
             <div>
                 <button onclick="UI.openSettings()"
@@ -291,6 +298,35 @@
             <button class="btn" onclick="UI.returnToMainMenu()"
                 style="width:100%; margin-bottom:10px; background:#555; border-color:#333;">🏠 Main Menu</button>
             <button class="btn" onclick="UI.closeSettings()" style="width:100%;">Continue Playing</button>
+        </div>
+    </div>
+
+    <!-- GAME OVER MODAL (Crown Rep = 0) -->
+    <div id="game-over-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(30,0,0,0.95); z-index:2000; align-items:center; justify-content:center;">
+        <div style="text-align:center; max-width:600px; padding:40px;">
+            <h1
+                style="font-family:var(--font-display); font-size:4rem; color:#8b0000; text-shadow:0 0 40px #500000; margin-bottom:20px;">
+                👑 ROYAL DECREE
+            </h1>
+            <h2 style="font-family:var(--font-display); font-size:2rem; color:#ff4444; margin-bottom:30px;">
+                LICENSE REVOKED
+            </h2>
+            <p style="color:#ccc; font-size:1.2rem; line-height:1.6; margin-bottom:40px;">
+                By order of the Crown, your Guild Charter has been revoked.<br>
+                Your reputation with the Royal Court has fallen beyond repair.<br>
+                The guards escort you from the premises.
+            </p>
+            <div style="border-top:2px solid #500000; padding-top:30px;">
+                <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">
+                    Days Survived: <span id="game-over-days" style="color:var(--gold);">0</span> |
+                    Final Gold: <span id="game-over-gold" style="color:var(--gold);">0</span>G
+                </p>
+                <button class="btn" onclick="UI.returnToMainMenu()"
+                    style="font-size:1.3rem; padding:15px 50px; background:linear-gradient(to bottom, #8b0000, #500000); border-color:#a00;">
+                    Return to Main Menu
+                </button>
+            </div>
         </div>
     </div>
 
@@ -344,6 +380,88 @@
                     <button class="btn" style="background:#555; border-color:#333;"
                         onclick="UI.handleVisitor(false)">Refuse</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- CHOICE EVENT MODAL (Reigns-style) -->
+        <div id="choice-event-modal"
+            style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center;">
+            <div class="quest-scroll"
+                style="width: 550px; height: auto; border: 4px solid var(--gold); max-height: 80vh; overflow-y: auto;">
+                <h2 id="choice-event-title"
+                    style="font-family: var(--font-display); color: var(--ink); border-bottom: 2px solid var(--ink); padding-bottom: 10px;">
+                    Event Title
+                </h2>
+                <p id="choice-event-description"
+                    style="font-size: 1.05rem; line-height: 1.5; margin: 15px 0; color: var(--ink);">
+                    Event description text...
+                </p>
+                <div style="margin-top: 25px; display: flex; flex-direction: column; gap: 12px;">
+                    <button id="choice-btn-0" class="btn"
+                        style="width: 100%; padding: 15px; text-align: left; background: linear-gradient(to bottom, #4a7c4e, #3a5c3e); border: 2px solid #2d4a30; font-size: 1rem;"
+                        onclick="UI.handleChoiceEvent(0)">
+                        <span id="choice-text-0">Choice 1</span>
+                    </button>
+                    <button id="choice-btn-1" class="btn"
+                        style="width: 100%; padding: 15px; text-align: left; background: linear-gradient(to bottom, #7c4a4a, #5c3a3a); border: 2px solid #4a2d2d; font-size: 1rem;"
+                        onclick="UI.handleChoiceEvent(1)">
+                        <span id="choice-text-1">Choice 2</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUEST PROGRESS MODAL (Interactive Story Quests) -->
+    <div id="quest-progress-modal"
+        style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(30,0,0,0.9); z-index:1001; align-items:center; justify-content:center;">
+        <div class="quest-scroll"
+            style="width: 600px; height: auto; border: 4px solid #8b0000; max-height: 85vh; overflow-y: auto; background: linear-gradient(to bottom, #f5e6d3 0%, #e8d5c0 50%, #d4c4b0 100%);">
+
+            <!-- Blood Moon Header -->
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px solid #8b0000; padding-bottom: 10px; margin-bottom: 15px;">
+                <div>
+                    <span style="font-size: 1.5rem;">🩸</span>
+                    <span id="quest-progress-title"
+                        style="font-family: var(--font-display); font-size: 1.4rem; color: #8b0000;">
+                        Quest Event
+                    </span>
+                </div>
+                <div
+                    style="background: #8b0000; color: #fff; padding: 5px 12px; border-radius: 4px; font-size: 0.85rem;">
+                    DAY <span id="quest-progress-day">1</span> OF 3
+                </div>
+            </div>
+
+            <!-- Hero Info -->
+            <div
+                style="display:flex; gap:10px; margin-bottom:15px; padding:10px; background:rgba(139,0,0,0.1); border-radius:4px;">
+                <div style="width:50px; height:50px; background:#555; border:2px solid #8b0000;"></div>
+                <div>
+                    <div id="quest-progress-hero" style="font-weight:bold; color:var(--ink);">Hero Name</div>
+                    <div id="quest-progress-quest" style="font-size:0.85rem; color:#666;">Quest Name</div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <p id="quest-progress-description"
+                style="font-size: 1rem; line-height: 1.6; margin: 15px 0; color: var(--ink); font-style: italic;">
+                Event description...
+            </p>
+
+            <!-- Choices -->
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                <button id="quest-progress-btn-0" class="btn"
+                    style="width: 100%; padding: 14px; text-align: left; background: linear-gradient(to bottom, #5c3a3a, #4a2d2d); border: 2px solid #8b0000; font-size: 0.95rem; color: #ffecd2;"
+                    onclick="UI.handleQuestProgress(0)">
+                    <span id="quest-progress-choice-0">Choice 1</span>
+                </button>
+                <button id="quest-progress-btn-1" class="btn"
+                    style="width: 100%; padding: 14px; text-align: left; background: linear-gradient(to bottom, #3a3a5c, #2d2d4a); border: 2px solid #4a4a8b; font-size: 0.95rem; color: #ffecd2;"
+                    onclick="UI.handleQuestProgress(1)">
+                    <span id="quest-progress-choice-1">Choice 2</span>
+                </button>
             </div>
         </div>
     </div>
@@ -451,6 +569,17 @@
                 <div id="guild-roster-list">
                     <!-- Roster items -->
                 </div>
+
+                <!-- Wall of the Fallen Memorial -->
+                <div id="guild-memorial" style="margin-top: 20px; display: none;">
+                    <h3
+                        style="color:#8b0000; border-bottom:1px solid #4a2020; font-family:var(--font-display); font-size:0.9rem;">
+                        💀 Wall of the Fallen
+                    </h3>
+                    <div id="guild-memorial-list" style="max-height: 200px; overflow-y: auto;">
+                        <!-- Memorial entries -->
+                    </div>
+                </div>
             </div>
 
             <!-- Main: Quest Assignments -->
@@ -506,21 +635,22 @@
 
     <!-- SCREEN 4: EVENING REPORT -->
     <div id="screen-evening" class="screen wood-bg">
-        <div
-            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
+        <div class="header-bar">
+            <span>📜 EVENING REPORT</span>
+            <div class="gold-display" id="evening-gold"></div>
+            <button class="btn btn-green" onclick="UI.startNextDay()">💤 Rest Until Dawn</button>
+        </div>
+        <div class="main-content" style="display:flex; justify-content:center; padding-top:20px;">
             <div class="quest-scroll"
-                style="width: 700px; height: auto; max-height:80vh; overflow-y:auto; padding-bottom:80px;">
+                style="width: 700px; height: auto; max-height:calc(100vh - 140px); overflow-y:auto; padding-bottom:40px;">
                 <h3>📜 DAILY LEDGER</h3>
                 <div id="evening-report-content" style="text-align:left; padding:10px;">
                     <!-- Report Details -->
                 </div>
             </div>
-            <!-- Button outside scroll to prevent overlap with scroll decorations -->
-            <button class="btn btn-green" onclick="UI.startNextDay()"
-                style="font-size:1.2rem; padding:15px 40px; margin-top:20px; position:relative; z-index:10;">💤 Rest
-                Until Dawn</button>
         </div>
     </div>
+
 
     <!-- SCRIPTS -->
     <script src="data/classes.js"></script>
@@ -528,11 +658,15 @@
     <script src="data/quests.js"></script>
     <script src="data/items.js"></script>
     <script src="data/characters.js"></script>
+    <script src="data/choice_events.js"></script>
+    <script src="data/combat_pools.js"></script>
 
     <script src="src/utils/ContentLoader.js"></script>
+    <script src="src/events/ChoiceEventSystem.js"></script>
     <script src="src/core/GameState.js"></script>
     <script src="src/core/QuestResolver.js"></script>
     <script src="src/ui/QuestMap.js"></script>
+    <script src="src/narrative/NarrativeGenerator.js"></script>
 
     <script>
         const UI = {
@@ -607,26 +741,44 @@
                     this.updateHUD();
                 }
 
-                // AUTO-PROCEED: If morning phase and no visitor event, go straight to Town Hall
+                // AUTO-PROCEED: If morning phase and no visitor event, check for choice events
                 if (phase === 'MORNING' && !window.GameState.morningEvent) {
+                    // Check for MORNING choice event before proceeding
+                    if (this.checkForPhaseChoiceEvent('MORNING')) {
+                        document.getElementById('screen-morning').classList.add('active');
+                        document.getElementById('morning-day').innerText = window.GameState.day;
+                        return; // Event modal shown, wait for player choice
+                    }
+
                     window.GameState.enterTownHall();
                     document.getElementById('screen-town').classList.add('active');
                     this.renderTownHall();
+
+                    // Check for TOWN_HALL choice event after rendering
+                    this.checkForPhaseChoiceEvent('TOWN_HALL');
                     return;
                 }
 
-                // If morning WITH event, show the morning screen + modal
+                // If morning WITH visitor event, show the morning screen + modal
                 if (phase === 'MORNING') {
                     document.getElementById('screen-morning').classList.add('active');
                     document.getElementById('morning-day').innerText = window.GameState.day;
 
-                    if (window.GameState.morningEvent) {
+                    // Priority 1: Interactive quest progress events
+                    if (window.GameState.activeQuestProgress) {
+                        this.showQuestProgressModal(window.GameState.activeQuestProgress);
+                    }
+                    // Priority 2: Regular visitor events
+                    else if (window.GameState.morningEvent) {
                         this.showVisitorModal(window.GameState.morningEvent);
                     }
                 }
                 else if (phase === 'TOWN_HALL') {
                     document.getElementById('screen-town').classList.add('active');
                     this.renderTownHall();
+
+                    // Check for choice event on Town Hall entry
+                    this.checkForPhaseChoiceEvent('TOWN_HALL');
                 }
                 else if (phase === 'DESK') {
                     document.getElementById('screen-desk').classList.add('active');
@@ -646,6 +798,18 @@
                 document.getElementById('hud-day').innerText = window.GameState.day;
                 document.getElementById('hud-gold').innerText = window.GameState.gold;
                 document.getElementById('hud-rep').innerText = window.GameState.reputation.town;
+
+                // Crown Rep with warning color
+                const crownRep = window.GameState.reputation.crown;
+                const crownElement = document.getElementById('hud-crown-rep');
+                crownElement.innerText = crownRep;
+                if (crownRep <= 0) {
+                    crownElement.style.color = '#ff4444';
+                } else if (crownRep <= 3) {
+                    crownElement.style.color = '#ff8800';
+                } else {
+                    crownElement.style.color = '';
+                }
             },
 
             openSettings() {
@@ -658,6 +822,8 @@
 
             returnToMainMenu() {
                 this.closeSettings();
+                // Also close game over modal if open
+                document.getElementById('game-over-modal').style.display = 'none';
                 document.getElementById('game-hud').style.display = 'none';
                 document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
                 document.getElementById('screen-main-menu').classList.add('active');
@@ -667,6 +833,95 @@
                 const continueBtn = document.getElementById('continue-btn');
                 continueBtn.disabled = !hasSave;
                 continueBtn.style.opacity = hasSave ? '1' : '0.5';
+            },
+
+            showGameOver() {
+                // Populate stats
+                document.getElementById('game-over-days').innerText = window.GameState.day;
+                document.getElementById('game-over-gold').innerText = window.GameState.gold;
+
+                // Hide all screens and show game over
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById('game-hud').style.display = 'none';
+                document.getElementById('game-over-modal').style.display = 'flex';
+
+                // Clear save (game over means you lost)
+                localStorage.removeItem('TGM_Save');
+            },
+
+            showQuestProgressModal(progressData) {
+                // Find hero info
+                const hero = window.GameState.findHeroById(progressData.heroId);
+                const heroName = hero ? hero.name : 'Unknown Hero';
+
+                // Populate modal
+                document.getElementById('quest-progress-title').innerText = progressData.title;
+                document.getElementById('quest-progress-day').innerText = progressData.progressDay;
+                document.getElementById('quest-progress-hero').innerText = heroName;
+                document.getElementById('quest-progress-quest').innerText = progressData.questName;
+                document.getElementById('quest-progress-description').innerText = progressData.description;
+
+                // Set choice button texts
+                document.getElementById('quest-progress-choice-0').innerText = progressData.choices[0].text;
+                document.getElementById('quest-progress-choice-1').innerText = progressData.choices[1].text;
+
+                // Show modal
+                document.getElementById('quest-progress-modal').style.display = 'flex';
+            },
+
+            handleQuestProgress(choiceIndex) {
+                const progressData = window.GameState.activeQuestProgress;
+                if (!progressData) return;
+
+                const choice = progressData.choices[choiceIndex];
+                const effects = choice.effects || {};
+
+                // Find the active quest to record the choice
+                const activeQuest = window.GameState.activeQuests.find(q => q.id === progressData.questId);
+                if (activeQuest && activeQuest.progressData) {
+                    activeQuest.progressData.choices.push({
+                        day: progressData.progressDay,
+                        choiceIndex: choiceIndex,
+                        effects: effects
+                    });
+
+                    // Apply success modifiers
+                    if (effects.successMod) {
+                        activeQuest.progressData.modifiers.push({ type: 'success', value: effects.successMod });
+                    }
+                    if (effects.successModWithFlag) {
+                        const flags = window.ChoiceEventSystem?.storyFlags || {};
+                        if (flags[effects.successModWithFlag.flag]) {
+                            activeQuest.progressData.modifiers.push({ type: 'success', value: effects.successModWithFlag.bonus });
+                        }
+                    }
+                }
+
+                // Apply immediate reputation effects
+                if (effects.townRep) {
+                    window.GameState.reputation.town = Math.max(0, window.GameState.reputation.town + effects.townRep);
+                }
+                if (effects.crownRep) {
+                    window.GameState.reputation.crown += effects.crownRep;
+                }
+
+                // Set story flags
+                if (effects.addFlag) {
+                    window.ChoiceEventSystem.storyFlags[effects.addFlag] = true;
+                }
+                if (effects.addFlag2) {
+                    window.ChoiceEventSystem.storyFlags[effects.addFlag2] = true;
+                }
+
+                // Clear the progress event
+                window.GameState.activeQuestProgress = null;
+                window.GameState.saveGame();
+
+                // Hide modal and continue to Town Hall
+                document.getElementById('quest-progress-modal').style.display = 'none';
+                this.updateHUD();
+                window.GameState.enterTownHall();
+                this.syncScreen();
             },
 
             showVisitorModal(eventData) {
@@ -697,6 +952,80 @@
                 this.syncScreen();
             },
 
+            // === CHOICE EVENT SYSTEM (Reigns-style) ===
+
+            showChoiceEventModal(event) {
+                document.getElementById('choice-event-modal').style.display = 'flex';
+                document.getElementById('choice-event-title').innerText = event.title;
+                document.getElementById('choice-event-description').innerText = event.description;
+                document.getElementById('choice-text-0').innerText = event.choices[0].text;
+                document.getElementById('choice-text-1').innerText = event.choices[1].text;
+
+                // Update button styles based on effects (visual hints)
+                const btn0 = document.getElementById('choice-btn-0');
+                const btn1 = document.getElementById('choice-btn-1');
+
+                // Add effect hints below button text
+                const formatEffects = (effects) => {
+                    const hints = [];
+                    if (effects.gold > 0) hints.push(`+${effects.gold}G`);
+                    if (effects.gold < 0) hints.push(`${effects.gold}G`);
+                    if (effects.townRep > 0) hints.push(`+${effects.townRep} Town Rep`);
+                    if (effects.townRep < 0) hints.push(`${effects.townRep} Town Rep`);
+                    if (effects.crownRep > 0) hints.push(`+${effects.crownRep} Crown Rep`);
+                    if (effects.crownRep < 0) hints.push(`${effects.crownRep} Crown Rep`);
+                    return hints.length > 0 ? `<div style="font-size:0.8rem; color:#ccc; margin-top:5px;">${hints.join(' • ')}</div>` : '';
+                };
+
+                document.getElementById('choice-text-0').innerHTML =
+                    event.choices[0].text + formatEffects(event.choices[0].effects || {});
+                document.getElementById('choice-text-1').innerHTML =
+                    event.choices[1].text + formatEffects(event.choices[1].effects || {});
+            },
+
+            handleChoiceEvent(choiceIndex) {
+                const result = window.ChoiceEventSystem.applyChoice(choiceIndex, window.GameState);
+
+                // Hide modal
+                document.getElementById('choice-event-modal').style.display = 'none';
+
+                // Update HUD to reflect changes
+                this.updateHUD();
+
+                // Continue with the current phase
+                // If we're in MORNING phase, proceed to Town Hall
+                if (window.GameState.phase === 'MORNING') {
+                    window.GameState.enterTownHall();
+                    this.syncScreen();
+                }
+            },
+
+            checkForPhaseChoiceEvent(phase) {
+                if (!window.ChoiceEventSystem) return false;
+
+                const event = window.ChoiceEventSystem.checkForEvent(phase, window.GameState);
+                if (event) {
+                    this.showChoiceEventModal(event);
+                    return true;
+                }
+                return false;
+            },
+
+            // === DEATH MATTERS - VIGIL HANDLING ===
+
+            handleVigil(heroId, holdVigil) {
+                let result;
+                if (holdVigil) {
+                    result = window.GameState.holdVigil(heroId);
+                } else {
+                    result = window.GameState.skipVigil(heroId);
+                }
+
+                // Re-render ledger to reflect changes
+                this.renderLedger();
+                this.updateHUD();
+            },
+
             goToTownHall() {
                 window.GameState.enterTownHall();
                 this.syncScreen();
@@ -719,6 +1048,13 @@
 
             endDay() {
                 const results = window.GameState.endDay();
+
+                // Check for Game Over condition
+                if (results.gameOver) {
+                    this.showGameOver();
+                    return;
+                }
+
                 this.syncScreen();
             },
 
@@ -849,17 +1185,32 @@
                     const div = document.createElement('div');
                     div.className = 'quest-scroll';
 
+                    // Story quest styling
+                    const isStory = q.isStoryQuest || false;
+                    const storyBorder = isStory ? 'border-left: 5px solid #8b0000;' : '';
+                    const storyIcon = isStory && q.storyIcon ? q.storyIcon + ' ' : '';
+
                     const rankColor = q.rank === 'S' ? '#9C27B0' : q.rank === 'A' ? '#F44336' : '#4CAF50';
 
+                    // Requirements display (handle both formats)
+                    const reqDisplay = q.requirements?.primary ||
+                        (q.requirements?.stat ? `${q.requirements.stat.toUpperCase()} ${q.requirements.min}` : 'None');
+
+                    // Description for story quests
+                    const descDisplay = isStory && q.description ?
+                        `<p style="font-size:0.85rem; color:#666; margin:8px 0;">${q.description}</p>` : '';
+
+                    div.style.cssText = storyBorder;
                     div.innerHTML = `
                         <div class="rank-badge" style="background:${rankColor}">${q.rank}</div>
-                        <h3>${q.name}</h3>
+                        <h3>${storyIcon}${q.name}</h3>
                         <p style="font-style:italic; font-size:0.9rem;">"${q.type} - ${q.duration} Days"</p>
+                        ${descDisplay}
                         <hr style="border:0; border-bottom:1px solid #ccc;">
-                        <p><strong>Req:</strong> ${q.requirements.primary}</p>
+                        <p><strong>Req:</strong> ${reqDisplay}</p>
                         <p><strong>Reward:</strong> <span style="color:var(--green); font-weight:bold;">${q.rewards.gold} G</span></p>
                         <div style="margin-top:auto; text-align:center; padding-top:20px;">
-                            <button class="btn" onclick="UI.claimQuest('${q.id}')">Claim Quest</button>
+                            <button class="btn" onclick="UI.claimQuest('${q.id}')">${isStory ? '🩸 Accept Quest' : 'Claim Quest'}</button>
                         </div>
                     `;
                     container.appendChild(div);
@@ -918,6 +1269,31 @@
                     `;
                     rosterList.appendChild(div);
                 });
+
+                // === WALL OF THE FALLEN MEMORIAL ===
+                const memorialContainer = document.getElementById('guild-memorial');
+                const memorialList = document.getElementById('guild-memorial-list');
+
+                if (window.GameState.memorial && window.GameState.memorial.length > 0) {
+                    memorialContainer.style.display = 'block';
+                    memorialList.innerHTML = '';
+
+                    window.GameState.memorial.forEach(fallen => {
+                        const div = document.createElement('div');
+                        div.style.cssText = 'padding:8px; margin:6px 0; background:rgba(139,0,0,0.2); border-left:2px solid #8b0000; font-size:0.8rem;';
+
+                        const vigilIcon = fallen.vigilHeld ? '🕯️' : '⚰️';
+
+                        div.innerHTML = `
+                            <strong style="color:#ffcdd2;">${vigilIcon} ${fallen.heroName}</strong>
+                            <div style="color:#888; font-size:0.7rem;">${fallen.className} • Fell on Day ${fallen.deathDay}</div>
+                            <div style="color:#666; font-size:0.65rem; font-style:italic; margin-top:3px;">"${fallen.questName}"</div>
+                        `;
+                        memorialList.appendChild(div);
+                    });
+                } else {
+                    memorialContainer.style.display = 'none';
+                }
 
                 // Recruits are now handled in DESK VIEW - no longer render here
 
@@ -982,7 +1358,12 @@
                 const log = window.GameState.dailyLog;
                 const container = document.getElementById('evening-report-content');
 
+                // Update header gold display
+                document.getElementById('evening-gold').innerText = window.GameState.gold + ' G';
+                this.updateHUD();
+
                 let html = '';
+
 
                 // === QUEST RESULTS (Rich Narratives) ===
                 if (log.questResults && log.questResults.length > 0) {
@@ -1019,19 +1400,55 @@
                                 ${result.specialEvents && result.specialEvents.length > 0 ?
                                 `<div style="color:#b3e5fc; margin-top:8px; font-size:0.85rem;">✨ ${result.specialEvents.map(e => e.text).join(' ')}</div>` : ''}
                             </div>
+                            ${result.travelEvents && result.travelEvents.length > 0 && window.NarrativeGenerator ?
+                                window.NarrativeGenerator.formatTravelEventsHTML(result.travelEvents, result.heroName) : ''}
+                            ${result.combatLog && window.NarrativeGenerator ?
+                                window.NarrativeGenerator.formatCombatLogHTML(result.combatLog, result.questName) : ''}
                         `;
                     });
                 } else {
                     html += `<p style="color:var(--ink); font-style:italic;">No quests completed today.</p>`;
                 }
 
+                // === VIGIL CHOICES (Death Matters) ===
+                const pendingVigils = window.GameState.dailyLog.pendingVigils || [];
+                if (pendingVigils.length > 0) {
+                    html += `
+                        <div style="margin:20px 0; padding:15px; background:linear-gradient(135deg, #1a0a0a 0%, #2d1515 100%); border:2px solid #8b0000; border-radius:8px;">
+                            <h4 style="color:#ff4444; margin:0 0 15px 0; font-family: var(--font-display);">💀 The Fallen</h4>
+                    `;
+
+                    pendingVigils.forEach(vigil => {
+                        html += `
+                            <div style="background:rgba(0,0,0,0.4); padding:12px; border-radius:6px; margin-bottom:10px; border-left:3px solid #8b0000;">
+                                <p style="color:#ffcdd2; font-weight:bold; margin:0 0 8px 0;">${vigil.heroName} - ${vigil.className} (Level ${vigil.level})</p>
+                                <p style="color:#888; font-size:0.85rem; font-style:italic; margin:0 0 12px 0;">${vigil.howDied}</p>
+                                <div style="display:flex; gap:10px;">
+                                    <button class="btn" style="background:linear-gradient(to bottom, #5c4033, #3d2b23); color:#ffd700; border:1px solid #8b7355; padding:8px 16px;" 
+                                        onclick="UI.handleVigil('${vigil.heroId}', true)">
+                                        🕯️ Hold Vigil (-50G, +5 Rep)
+                                    </button>
+                                    <button class="btn" style="background:#333; color:#888; border:1px solid #555; padding:8px 16px;" 
+                                        onclick="UI.handleVigil('${vigil.heroId}', false)">
+                                        Lay to Rest (No Ceremony)
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div>`;
+                }
+
                 // === ADVENTURE MAP (Active Quests In Progress) ===
                 if (window.GameState.activeQuests && window.GameState.activeQuests.length > 0) {
+                    html += '<div style="margin-top: 25px;">'; // Add spacing to prevent overlap
                     html += window.QuestMap.render(
                         window.GameState.activeQuests,
                         window.GameState,
                         window.GameState.day
                     );
+                    html += '</div>'; // Close spacing div
                 }
 
                 // === FINANCIAL SUMMARY ===

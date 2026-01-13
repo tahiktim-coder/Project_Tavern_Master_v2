@@ -33,8 +33,17 @@ class GameState {
         this.dailyLog = {
             income: [],
             expenses: [],
-            questReports: []
+            questReports: [],
+            events: [],           // Choice events from this day
+            pendingVigils: []     // Deaths awaiting vigil choice
         };
+
+        // Memorial - Wall of the Fallen
+        this.memorial = [];       // Array of { name, className, level, deathDay, questName, howDied }
+
+        // Story Quest Tracking
+        this.completedStoryQuests = [];  // IDs of completed story quests
+        this.activeQuestProgress = null; // Current interactive quest progress event to show
     }
 
     /**
@@ -57,14 +66,52 @@ class GameState {
     startMorning() {
         this.phase = 'MORNING';
         this.refreshDailyContent();
-        this.dailyLog = { income: [], expenses: [], questReports: [] };
+        this.dailyLog = {
+            income: [],
+            expenses: [],
+            questReports: [],
+            events: [],
+            pendingVigils: []
+        };
 
         // Check for returning quests (multi-day quests that completed)
         this.processReturningQuests();
 
-        // 30% chance of a visitor event
+        // === CHECK FOR INTERACTIVE QUEST PROGRESS ===
+        this.activeQuestProgress = null;
+        const progressEvents = window.GAME_DATA?.questProgressEvents || [];
+        for (const activeQuest of this.activeQuests) {
+            if (!activeQuest.isInteractive) continue;
+
+            // Initialize progress data if not present
+            if (!activeQuest.progressData) {
+                activeQuest.progressData = { currentDay: 0, choices: [], modifiers: [] };
+            }
+
+            // Increment progress day
+            activeQuest.progressData.currentDay++;
+            const progDay = activeQuest.progressData.currentDay;
+
+            // Find matching progress event
+            const progressEvent = progressEvents.find(pe =>
+                pe.questId === activeQuest.id && pe.progressDay === progDay
+            );
+
+            if (progressEvent) {
+                this.activeQuestProgress = {
+                    questId: activeQuest.id,
+                    questName: activeQuest.name,
+                    heroId: activeQuest.assignedHeroId,
+                    ...progressEvent
+                };
+                console.log(`🩸 Quest Progress Event: ${progressEvent.title} (Day ${progDay})`);
+                break; // Only show one progress event per morning
+            }
+        }
+
+        // 30% chance of a visitor event (only if no quest progress event)
         this.morningEvent = null;
-        if (Math.random() < 0.3) {
+        if (!this.activeQuestProgress && Math.random() < 0.3) {
             this.morningEvent = {
                 id: 'royal_guard',
                 name: 'Royal Guard',
@@ -74,7 +121,7 @@ class GameState {
         }
 
         this.saveGame();
-        console.log(`Phase: ${this.phase} (Day ${this.day}, Event: ${this.morningEvent ? 'Yes' : 'No'})`);
+        console.log(`Phase: ${this.phase} (Day ${this.day}, QuestProgress: ${this.activeQuestProgress ? 'Yes' : 'No'}, Event: ${this.morningEvent ? 'Yes' : 'No'})`);
     }
 
     /**
@@ -122,6 +169,17 @@ class GameState {
                 hero.deathDay = this.day;
                 hero.deathCause = `Died during ${quest.name}`;
                 console.log(`💀 ${hero.name} has died during ${quest.name}!`);
+
+                // Add to pending vigils for player choice
+                this.dailyLog.pendingVigils = this.dailyLog.pendingVigils || [];
+                this.dailyLog.pendingVigils.push({
+                    heroId: hero.id,
+                    heroName: hero.name,
+                    className: hero.className || 'Adventurer',
+                    level: hero.level || 1,
+                    questName: quest.name,
+                    howDied: result.story || 'Died heroically'
+                });
             } else if (result.injury) {
                 hero.status = 'INJURED';
                 hero.injury = result.injury;
@@ -218,10 +276,17 @@ class GameState {
         this.gold -= totalWages;
         this.dailyLog.expenses.push({ source: "Daily Upkeep & Wages", amount: totalWages });
 
-        // 3. Transition to Ledger
+        // 3. Check for Crown Rep Game Over condition
+        if (this.reputation.crown < 0) {
+            console.log("⚠️ GAME OVER: Crown Reputation has fallen below 0!");
+            this.phase = 'GAME_OVER';
+            return { ...this.dailyLog, gameOver: true, reason: 'crown_rep' };
+        }
+
+        // 4. Transition to Ledger
         this.phase = 'LEDGER';
         this.saveGame();
-        return this.dailyLog;
+        return { ...this.dailyLog, gameOver: false };
     }
 
     nextDay() {
@@ -378,6 +443,27 @@ class GameState {
             const allQuests = window.GAME_DATA.quests || [];
             this.availableQuests = this.getRandomSubset(allQuests, 4);
 
+            // === STORY QUEST INJECTION ===
+            // Check if any story quests should appear based on flags
+            const storyQuests = window.GAME_DATA.storyQuests || [];
+            const flags = window.ChoiceEventSystem?.storyFlags || {};
+            const completedStoryQuestIds = this.completedStoryQuests || [];
+
+            storyQuests.forEach(sq => {
+                // Check if already completed or active
+                if (completedStoryQuestIds.includes(sq.id)) return;
+                if (this.activeQuests.some(q => q.id === sq.id)) return;
+                if (this.claimedQuests.some(q => q.id === sq.id)) return;
+                if (this.availableQuests.some(q => q.id === sq.id)) return;
+
+                // Check required flag
+                if (sq.requiresFlag && !flags[sq.requiresFlag]) return;
+
+                // Add to available quests at the front (priority)
+                console.log(`📜 Story Quest Unlocked: ${sq.name}`);
+                this.availableQuests.unshift({ ...sq });
+            });
+
             // === PRE-GENERATED "SPECIAL" CHARACTERS ===
             const allChars = window.GAME_DATA.characters || [];
             const dayOfCycle = ((this.day - 1) % 21) + 1; // 1-21 repeating
@@ -467,6 +553,74 @@ class GameState {
         return shuffled.slice(0, count);
     }
 
+    // =========================================================
+    // MEMORIAL / DEATH MATTERS
+    // =========================================================
+
+    /**
+     * Hold a vigil for a fallen hero (costs gold, gains reputation)
+     */
+    holdVigil(heroId) {
+        const vigilData = this.dailyLog.pendingVigils?.find(v => v.heroId === heroId);
+        if (!vigilData) return { success: false, message: 'No pending vigil for this hero' };
+
+        const cost = 50;
+        if (this.gold < cost) {
+            return { success: false, message: 'Not enough gold for vigil' };
+        }
+
+        // Pay for vigil
+        this.gold -= cost;
+        this.dailyLog.expenses.push({ source: `Vigil for ${vigilData.heroName}`, amount: cost });
+
+        // Gain reputation based on hero class/origin
+        const repGain = vigilData.className === 'Knight-Errant' ? 7 : 5;
+        this.reputation.town += repGain;
+
+        // Add to memorial
+        this.memorial.push({
+            ...vigilData,
+            deathDay: this.day,
+            vigilHeld: true
+        });
+
+        // Remove from pending
+        this.dailyLog.pendingVigils = this.dailyLog.pendingVigils.filter(v => v.heroId !== heroId);
+
+        // Remove dead hero from roster
+        this.roster = this.roster.filter(h => h.id !== heroId);
+        this.freelancers = this.freelancers.filter(h => h.id !== heroId);
+
+        this.saveGame();
+        return { success: true, message: `Held vigil for ${vigilData.heroName}. +${repGain} Town Rep` };
+    }
+
+    /**
+     * Skip vigil for a fallen hero (no cost, no reputation)
+     */
+    skipVigil(heroId) {
+        const vigilData = this.dailyLog.pendingVigils?.find(v => v.heroId === heroId);
+        if (!vigilData) return { success: false, message: 'No pending vigil for this hero' };
+
+        // Add to memorial without vigil
+        this.memorial.push({
+            ...vigilData,
+            deathDay: this.day,
+            vigilHeld: false
+        });
+
+        // Remove from pending
+        this.dailyLog.pendingVigils = this.dailyLog.pendingVigils.filter(v => v.heroId !== heroId);
+
+        // Remove dead hero from roster
+        this.roster = this.roster.filter(h => h.id !== heroId);
+        this.freelancers = this.freelancers.filter(h => h.id !== heroId);
+
+        this.saveGame();
+        return { success: true, message: `${vigilData.heroName} laid to rest without ceremony.` };
+    }
+
+
     saveGame() {
         const data = {
             gold: this.gold,
@@ -479,7 +633,11 @@ class GameState {
             claimedQuests: this.claimedQuests,
             availableQuests: this.availableQuests,
             availableHires: this.availableHires,
-            morningEvent: this.morningEvent
+            morningEvent: this.morningEvent,
+            memorial: this.memorial,
+            completedStoryQuests: this.completedStoryQuests,
+            activeQuestProgress: this.activeQuestProgress,
+            choiceEventData: window.ChoiceEventSystem?.getSaveData() || null
         };
         localStorage.setItem('TGM_Save', JSON.stringify(data));
         console.log("Game Saved.");
@@ -501,6 +659,14 @@ class GameState {
                 this.availableQuests = data.availableQuests || [];
                 this.availableHires = data.availableHires || [];
                 this.morningEvent = data.morningEvent || null;
+                this.memorial = data.memorial || [];
+                this.completedStoryQuests = data.completedStoryQuests || [];
+                this.activeQuestProgress = data.activeQuestProgress || null;
+
+                // Load choice event system data
+                if (data.choiceEventData && window.ChoiceEventSystem) {
+                    window.ChoiceEventSystem.loadSaveData(data.choiceEventData);
+                }
 
                 console.log("Game Loaded.");
                 return true;
@@ -511,6 +677,7 @@ class GameState {
         }
         return false;
     }
+
 
     /**
      * Static method to reset singleton for New Game

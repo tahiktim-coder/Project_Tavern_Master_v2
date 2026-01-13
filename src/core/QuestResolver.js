@@ -121,6 +121,19 @@ class QuestResolver {
         // Step 7: Calculate freelancer cut if applicable
         const freelancerCut = hero.hireType === 'freelance' ? Math.floor(rewards.gold * 0.5) : 0;
 
+        // Step 8: Generate combat log for B+ rank quests
+        let combatLog = null;
+        if (window.NarrativeGenerator) {
+            combatLog = window.NarrativeGenerator.generateCombatLog(hero, quest, outcome.tier);
+        }
+
+        // Step 9: Roll travel events for multi-day quests
+        let travelEvents = [];
+        const duration = parseInt(quest.duration ?? 0);
+        if (window.NarrativeGenerator && duration >= 2) {
+            travelEvents = window.NarrativeGenerator.rollTravelEvents(quest, duration);
+        }
+
         return {
             heroId: hero.id,
             heroName: hero.name,
@@ -149,6 +162,8 @@ class QuestResolver {
             // Narrative
             story: story,
             specialEvents: specialEvents,
+            combatLog: combatLog,
+            travelEvents: travelEvents,
 
             // Breakdown for transparency
             modifierBreakdown: this.lastModifierBreakdown || []

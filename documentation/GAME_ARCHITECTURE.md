@@ -206,6 +206,63 @@ morningPhase() {
 
 ---
 
+### 5. Gameplay Enhancement Systems (NEW)
+> **Priority: IMPLEMENTED** — Advanced gameplay features
+
+#### A. Choice Events (Reigns-style)
+**Files**: `src/events/ChoiceEventSystem.js`, `data/choice_events.js`
+
+Binary choice events that trigger during game phases (MORNING, TOWN_HALL) with consequences affecting gold, reputation, and story flags.
+
+```javascript
+// ChoiceEventSystem provides:
+checkForEvent(phase, gameState)  // Roll for events based on conditions
+applyChoice(event, choiceIndex)  // Apply consequences to game state
+getSaveData() / loadSaveData()   // Persistence support
+```
+
+**Features**:
+- 15+ pre-defined events with probability-based triggering
+- Conditional events (require minDay, minGold, story flags)
+- Cooldown system prevents event spam
+- Effects: gold changes, reputation changes, story flags
+
+#### B. Travel Events (Oregon Trail-style)
+**Files**: `src/narrative/NarrativeGenerator.js` (rollTravelEvents, formatTravelEventsHTML)
+
+Random events occur during multi-day quests (2+ days), displayed in evening report.
+
+```javascript
+// NarrativeGenerator provides:
+rollTravelEvents(quest, duration)     // Generate events (40% per day)
+formatTravelEventsHTML(events, hero)  // Stylized display for ledger
+```
+
+**Event Types**: Positive (shortcuts, treasure), Neutral (rest events), Negative (bandits, illness)
+**Weighting**: Higher-rank quests have more negative events
+
+#### C. Death Matters (Darkest Dungeon-style)
+**Files**: `src/core/GameState.js` (memorial, holdVigil, skipVigil)
+
+Impactful death system with player choice and memorial tracking.
+
+```javascript
+// GameState new properties:
+this.memorial = [];                    // Array of fallen heroes
+this.dailyLog.pendingVigils = [];      // Deaths awaiting player choice
+
+// GameState new methods:
+holdVigil(heroId)   // Pay 50G, gain +5 Town Rep, honored memorial
+skipVigil(heroId)   // No cost/benefit, unmarked memorial
+```
+
+**UI Components**:
+- Vigil choice panel in Evening Report (💀 The Fallen section)
+- Wall of the Fallen memorial in Guild Hall sidebar
+- Visual distinction: 🕯️ (vigil) vs ⚰️ (no ceremony)
+
+---
+
 ## 🚀 DEVELOPMENT ROADMAP
 
 ### 🔥 PHASE 1: Foundation (Week 1-2)
