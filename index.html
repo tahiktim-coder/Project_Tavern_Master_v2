@@ -488,7 +488,8 @@
             <button class="btn" onclick="UI.skipToRoster()" id="skip-to-roster-btn">Skip to Roster ➔</button>
         </div>
 
-        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div
+            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:80px;">
 
             <!-- Speech Bubble (Random Greeting) -->
             <div id="desk-speech-bubble"
@@ -1096,13 +1097,16 @@
                 skipBtn.style.opacity = '1';
 
                 if (remaining <= 0 || idx >= hires.length) {
-                    // No more adventurers
+                    // No more adventurers - hide card AND speech bubble
                     document.getElementById('desk-adventurer-card').style.display = 'none';
+                    document.getElementById('desk-speech-bubble').style.display = 'none';
                     document.getElementById('desk-empty-message').style.display = 'block';
                     return;
                 }
 
+                // Show adventurer card and speech bubble
                 document.getElementById('desk-adventurer-card').style.display = 'block';
+                document.getElementById('desk-speech-bubble').style.display = 'block';
                 document.getElementById('desk-empty-message').style.display = 'none';
 
                 const char = hires[idx];
