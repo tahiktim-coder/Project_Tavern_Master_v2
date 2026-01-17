@@ -1100,16 +1100,16 @@
         <div id="screen-intro" class="screen"
             style="background: #1a1510 url('assets/ui/backgrounds/tavern_keeper.jpg') top center no-repeat; background-size: auto 100%; padding-top:0; cursor:pointer;">
 
-            <!-- Dialogue Box -->
+            <!-- Dialogue Box - Smaller and lower positioned -->
             <div id="intro-dialogue-box"
-                style="position:absolute; bottom:10%; left:50%; transform:translateX(-50%); width:80%; max-width:700px; z-index:10;">
+                style="position:absolute; bottom:3%; left:50%; transform:translateX(-50%); width:65%; max-width:550px; z-index:10;">
                 <div
-                    style="background: linear-gradient(to bottom, #f5e6d3, #d4c4b0); border:4px solid #5d4037; border-radius:8px; padding:25px 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                    style="background: linear-gradient(to bottom, rgba(245,230,211,0.95), rgba(212,196,176,0.95)); border:3px solid #5d4037; border-radius:6px; padding:15px 20px; box-shadow: 0 6px 25px rgba(0,0,0,0.7);">
                     <p id="intro-dialogue-text"
-                        style="font-family:var(--font-main); font-size:1.3rem; color:var(--ink); line-height:1.6; margin:0; text-align:center;">
+                        style="font-family:var(--font-main); font-size:1rem; color:var(--ink); line-height:1.5; margin:0; text-align:center;">
                         <!-- Dialogue inserted by JS -->
                     </p>
-                    <p style="text-align:center; margin-top:15px; color:#888; font-size:0.85rem; font-style:italic;">—
+                    <p style="text-align:center; margin-top:10px; color:#888; font-size:0.75rem; font-style:italic;">—
                         Click anywhere to continue —</p>
                 </div>
             </div>
@@ -1125,16 +1125,19 @@
                 <!-- Quest flip cards will be inserted here by JS -->
             </div>
 
-            <!-- Proceed to Map button -->
-            <div style="position:absolute; bottom:5%; left:50%; transform:translateX(-50%); text-align:center;">
-                <button class="btn" onclick="UI.proceedToMap()" id="proceed-to-map-btn"
-                    style="font-size:1rem; padding:12px 30px; background:linear-gradient(to bottom, var(--gold), var(--gold-dark)); border:3px solid var(--wood-dark); color:var(--ink);">
-                    📜 View Quest Map
+            <!-- Bottom buttons -->
+            <div
+                style="position:absolute; bottom:5%; left:50%; transform:translateX(-50%); text-align:center; display:flex; gap:15px; align-items:center;">
+                <button class="btn" onclick="UI.showMap()"
+                    style="font-size:0.9rem; padding:10px 25px; background:#5d8aa8; border-color:#3d6882;">
+                    🗺️ Back to Map
                 </button>
-                <p style="color:#aaa; margin-top:8px; font-size:0.8rem;">Select quests from the board, then view the map
-                </p>
+                <div>
+                    <p style="color:#ccc; margin:0; font-size:0.75rem;">Click cards to flip & accept quests</p>
+                </div>
             </div>
         </div>
+
 
         <!-- MAP VIEW SCREEN (Assign adventurers to quests) -->
         <div id="screen-map" class="screen"
@@ -1190,20 +1193,40 @@
                 </div>
             </div>
 
-            <!-- Hire Adventurers button (inside map screen) -->
-            <div style="position:absolute; bottom:5%; left:20px; z-index:50;">
-                <button class="btn" onclick="UI.goToTavern()"
-                    style="font-size:0.9rem; padding:8px 20px; background:linear-gradient(to bottom, #5d8aa8, #4a7896); border:2px solid #3d6882; color:var(--parchment);">
-                    👤 Hire Adventurers
-                </button>
-            </div>
+            <!-- Bottom Navigation Bar -->
+            <div
+                style="position:absolute; bottom:0; left:0; right:0; height:60px; background:rgba(30,20,15,0.95); border-top:2px solid #5c4a3a; display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:50;">
 
-            <!-- End Day button (inside map screen) -->
-            <div style="position:absolute; bottom:5%; right:20px; z-index:50;">
-                <button class="btn" onclick="UI.endDayFromMap()"
-                    style="font-size:1rem; padding:10px 25px; background:linear-gradient(to bottom, #4a7c4e, #3a5c3e); border:2px solid #2d4a30; color:var(--parchment);">
-                    🌙 End Day
-                </button>
+                <!-- Left buttons -->
+                <div style="display:flex; gap:10px;">
+                    <button class="btn" onclick="UI.showQuestBoard()"
+                        style="font-size:0.8rem; padding:8px 12px; background:linear-gradient(to bottom, var(--gold), var(--gold-dark)); border:2px solid var(--wood-dark); color:var(--ink);">
+                        📋 Quest Board
+                    </button>
+                    <button class="btn" onclick="UI.goToTavern()"
+                        style="font-size:0.8rem; padding:8px 12px; background:linear-gradient(to bottom, #5d8aa8, #4a7896); border:2px solid #3d6882; color:var(--parchment);">
+                        🍺 Tavern
+                    </button>
+                    <button class="btn" onclick="UI.showGuildHall()"
+                        style="font-size:0.8rem; padding:8px 12px; background:linear-gradient(to bottom, #6a5a4a, #4a3a2a); border:2px solid #3e2723; color:var(--parchment);">
+                        🛡️ Guild Hall
+                    </button>
+                </div>
+
+                <!-- Center guidance message -->
+                <div id="map-guidance" style="text-align:center; flex:1; padding:0 20px;">
+                    <p id="map-guidance-text" style="margin:0; color:#ccc; font-size:0.8rem; font-style:italic;">
+                        <!-- Guidance text will be updated by JS -->
+                    </p>
+                </div>
+
+                <!-- Right button -->
+                <div>
+                    <button class="btn" onclick="UI.endDayFromMap()"
+                        style="font-size:0.95rem; padding:10px 25px; background:linear-gradient(to bottom, #4a7c4e, #3a5c3e); border:2px solid #2d4a30; color:var(--parchment);">
+                        🌙 End Day
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1339,16 +1362,13 @@
         </div>
     </div>
 
-    <!-- SCREEN 2.5: DESK VIEW (Adventurer Queue) -->
+    <!-- SCREEN 2.5: TAVERN (Adventurer Hiring) -->
     <div id="screen-desk" class="screen" style="background: var(--bg-dark);">
         <div class="header-bar">
-            <span>📋 YOUR DESK</span>
+            <span>🍺 THE TAVERN</span>
             <div id="desk-queue-indicator">Waiting: <span id="desk-queue-count">0</span> adventurers</div>
-            <div style="display:flex; gap:10px;">
-                <button class="btn" onclick="UI.showMap()" style="background:#5d8aa8; border-color:#3d6882;">🗺️ Back to
-                    Map</button>
-                <button class="btn" onclick="UI.skipToRoster()" id="skip-to-roster-btn">Skip to Roster ➔</button>
-            </div>
+            <button class="btn" onclick="UI.showMap()" style="background:#5d8aa8; border-color:#3d6882;">🗺️ Back to
+                Map</button>
         </div>
 
 
@@ -1416,9 +1436,9 @@
             <!-- No More Adventurers Message -->
             <div id="desk-empty-message" style="display:none; text-align:center; color:var(--parchment);">
                 <h2 style="font-family:var(--font-display); color:var(--gold);">No More Visitors Today</h2>
-                <p>The queue is empty. Head to your roster to manage quests.</p>
-                <button class="btn btn-green" onclick="UI.skipToRoster()"
-                    style="margin-top:20px; font-size:1.2rem; padding:15px 40px;">Go to Roster ➔</button>
+                <p>The tavern is quiet. Return to the war table to plan your next move.</p>
+                <button class="btn btn-green" onclick="UI.showMap()"
+                    style="margin-top:20px; font-size:1.1rem; padding:12px 30px;">🗺️ Back to Map</button>
             </div>
 
             <!-- Queue Dots -->
@@ -1426,22 +1446,38 @@
         </div>
     </div>
 
-    <!-- SCREEN 3: ROSTER VIEW (Quest Management) -->
+    <!-- SCREEN 3: GUILD HALL (Hero Management) -->
     <div id="screen-guild" class="screen" style="background: var(--bg-dark);">
         <div class="header-bar">
-            <span>🛡️ ROSTER</span>
+            <span>🛡️ GUILD HALL</span>
             <div class="gold-display" id="guild-gold">350 G</div>
-            <button class="btn" onclick="UI.endDay()">End Day 🌙</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="UI.showMap()" style="background:#5d8aa8; border-color:#3d6882;">🗺️ Back to
+                    Map</button>
+            </div>
         </div>
 
         <div class="guild-layout">
             <!-- Sidebar: Roster -->
             <div class="guild-sidebar">
+                <!-- Full-Time Members -->
                 <h2
-                    style="color:var(--gold); border-bottom:1px solid var(--wood-light); font-family:var(--font-display);">
-                    Your Heroes</h2>
-                <div id="guild-roster-list">
-                    <!-- Roster items -->
+                    style="color:var(--gold); border-bottom:1px solid var(--wood-light); font-family:var(--font-display); font-size:0.95rem; margin-bottom:10px;">
+                    ⭐ Full-Time Members
+                </h2>
+                <div id="guild-roster-fulltime" style="margin-bottom:20px;">
+                    <!-- Full-time roster items -->
+                    <p style="color:#666; font-size:0.8rem; font-style:italic;">No full-time members yet</p>
+                </div>
+
+                <!-- Today's Freelancers -->
+                <h2
+                    style="color:#5d8aa8; border-bottom:1px solid #3d6882; font-family:var(--font-display); font-size:0.95rem; margin-bottom:10px;">
+                    🤝 Today's Freelancers
+                </h2>
+                <div id="guild-roster-freelancers" style="margin-bottom:20px;">
+                    <!-- Freelancer items -->
+                    <p style="color:#666; font-size:0.8rem; font-style:italic;">No freelancers hired today</p>
                 </div>
 
                 <!-- Wall of the Fallen Memorial -->
@@ -1684,8 +1720,8 @@
                     AudioManager.init();
                     AudioManager.playMusic('Hearthfire Ale.mp3');
 
-                    // Go to Quest Board first (user must accept quests before Map)
-                    this.showQuestBoard();
+                    // Go to Map (central hub)
+                    this.showMap();
                 }
             },
 
@@ -1847,6 +1883,42 @@
                 this.setupDropZone();
                 this.closeQuestListPopup();
                 this.closeQuestDetail();
+                this.updateMapGuidance();
+            },
+
+            // Update guidance message based on game state
+            updateMapGuidance() {
+                const guidanceEl = document.getElementById('map-guidance-text');
+                if (!guidanceEl) return;
+
+                const acceptedQuests = window.GameState.acceptedQuests || [];
+                const heroes = [
+                    ...(window.GameState.roster || []),
+                    ...(window.GameState.freelancers || [])
+                ];
+                const unassignedQuests = acceptedQuests.filter(q => !q.assignedHeroId);
+                const assignedQuests = acceptedQuests.filter(q => q.assignedHeroId);
+
+                let message = '';
+                let icon = '';
+
+                if (acceptedQuests.length === 0) {
+                    icon = '📋';
+                    message = 'Visit the Quest Board to accept available jobs';
+                } else if (heroes.length === 0) {
+                    icon = '👤';
+                    message = 'Hire adventurers from the Tavern to send on quests';
+                } else if (unassignedQuests.length > 0) {
+                    icon = '🎯';
+                    message = `Click quest flags on the map → Drag adventurer to assign (${unassignedQuests.length} unassigned)`;
+                } else if (assignedQuests.length > 0) {
+                    icon = '✅';
+                    message = `All ${assignedQuests.length} quest(s) assigned! Click "End Day" when ready`;
+                } else {
+                    message = 'Welcome to the War Table - your command center';
+                }
+
+                guidanceEl.innerHTML = `${icon} ${message}`;
             },
 
             // Group accepted quests by location and render flags
@@ -2145,6 +2217,70 @@
                 this.goToTavern();
             },
 
+            // Navigate to Guild Hall (roster/hero management)
+            showGuildHall() {
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById('screen-guild').classList.add('active');
+                document.getElementById('game-hud').style.display = 'block';
+                this.updateHUD();
+                this.renderRoster();
+            },
+
+            // Render roster for Guild Hall (two categories)
+            renderRoster() {
+                const fulltimeContainer = document.getElementById('guild-roster-fulltime');
+                const freelancerContainer = document.getElementById('guild-roster-freelancers');
+
+                const roster = window.GameState.roster || [];
+                const freelancers = window.GameState.freelancers || [];
+
+                // Render full-time members
+                if (roster.length === 0) {
+                    fulltimeContainer.innerHTML = '<p style="color:#666; font-size:0.8rem; font-style:italic;">No full-time members yet</p>';
+                } else {
+                    fulltimeContainer.innerHTML = roster.map(hero => this.createRosterCard(hero, 'fulltime')).join('');
+                }
+
+                // Render freelancers
+                if (freelancers.length === 0) {
+                    freelancerContainer.innerHTML = '<p style="color:#666; font-size:0.8rem; font-style:italic;">No freelancers hired today</p>';
+                } else {
+                    freelancerContainer.innerHTML = freelancers.map(hero => this.createRosterCard(hero, 'freelance')).join('');
+                }
+
+                // Update gold display
+                document.getElementById('guild-gold').innerText = `${window.GameState.gold} G`;
+            },
+
+            createRosterCard(hero, hireType) {
+                const isAssigned = (window.GameState.acceptedQuests || []).some(q => q.assignedHeroId === hero.id);
+                const assignedQuest = (window.GameState.acceptedQuests || []).find(q => q.assignedHeroId === hero.id);
+
+                return `
+                    <div style="background:rgba(0,0,0,0.2); border:1px solid #555; border-radius:4px; padding:8px; margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <div>
+                                <strong style="color:var(--parchment); font-size:0.85rem;">${hero.name}${hero.surname ? ' ' + hero.surname : ''}</strong>
+                                <div style="font-size:0.7rem; color:#888;">
+                                    ${hero.className || 'Adventurer'} • Lv.${hero.level || 1}
+                                </div>
+                            </div>
+                            <span style="font-size:0.7rem; color:${hireType === 'fulltime' ? 'var(--gold)' : '#5d8aa8'};">
+                                ${hireType === 'fulltime' ? '⭐' : '🤝'}
+                            </span>
+                        </div>
+                        ${isAssigned ? `
+                            <div style="margin-top:5px; padding:4px; background:rgba(76,175,80,0.2); border-radius:3px; font-size:0.65rem; color:#4CAF50;">
+                                🎯 Assigned: ${assignedQuest?.name || 'Quest'}
+                            </div>
+                        ` : `
+                            <div style="margin-top:5px; font-size:0.65rem; color:#888; font-style:italic;">
+                                Available for assignment
+                            </div>
+                        `}
+                    </div>
+                `;
+            },
 
             // --- QUEST ASSIGNMENT MODAL ---
             currentAssignQuestId: null,
@@ -2697,7 +2833,8 @@
 
             startNextDay() {
                 window.GameState.nextDay();
-                this.syncScreen();
+                // Go to Map (central hub) for new day
+                this.showMap();
             },
 
             // --- RENDERING ---
