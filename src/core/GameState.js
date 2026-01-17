@@ -26,6 +26,7 @@ class GameState {
         this.activeQuests = [];     // Quests currently in progress (with heroes assigned)
         this.availableQuests = [];  // Quests on the Town Board
         this.claimedQuests = [];    // Quests claimed but not yet dispatched
+        this.acceptedQuests = [];   // Quests accepted from Quest Board (new flow)
         this.availableHires = [];   // Adventurers seeking work
         this.morningEvent = null;
 
@@ -161,6 +162,19 @@ class GameState {
             // Apply reputation change
             if (result.reputationChange !== 0) {
                 this.reputation.town += result.reputationChange;
+            }
+
+            // Apply Crown Rep from quest (for Crown Missions)
+            if (quest.rewards && quest.rewards.crownRep) {
+                this.reputation.crown += quest.rewards.crownRep;
+                console.log(`👑 Crown Rep ${quest.rewards.crownRep > 0 ? '+' : ''}${quest.rewards.crownRep}`);
+            }
+
+            // Clear Crown Mission flag when completed
+            if (quest.isCrownMission && window.ChoiceEventSystem) {
+                delete window.ChoiceEventSystem.storyFlags['crown_mission_active'];
+                delete window.ChoiceEventSystem.storyFlags['crown_mission_delayed'];
+                console.log('👑 Crown Mission completed - cleared flags');
             }
 
             // Apply consequences to hero
@@ -476,9 +490,16 @@ class GameState {
 
     refreshDailyContent() {
         if (window.GAME_DATA) {
-            // Quests: still random for variety
+            // Get IDs of quests that are already in play (to avoid duplicates)
+            const inPlayQuestIds = [
+                ...this.activeQuests.map(q => q.id),
+                ...this.claimedQuests.map(q => q.id)
+            ];
+
+            // Quests: random selection, excluding any already in play
             const allQuests = window.GAME_DATA.quests || [];
-            this.availableQuests = this.getRandomSubset(allQuests, 4);
+            const availablePool = allQuests.filter(q => !inPlayQuestIds.includes(q.id));
+            this.availableQuests = this.getRandomSubset(availablePool, 4);
 
             // === STORY QUEST INJECTION ===
             // Check if any story quests should appear based on flags
@@ -669,6 +690,7 @@ class GameState {
             activeQuests: this.activeQuests,
             claimedQuests: this.claimedQuests,
             availableQuests: this.availableQuests,
+            acceptedQuests: this.acceptedQuests,
             availableHires: this.availableHires,
             morningEvent: this.morningEvent,
             memorial: this.memorial,
@@ -694,6 +716,7 @@ class GameState {
                 this.activeQuests = data.activeQuests || [];
                 this.claimedQuests = data.claimedQuests || [];
                 this.availableQuests = data.availableQuests || [];
+                this.acceptedQuests = data.acceptedQuests || [];
                 this.availableHires = data.availableHires || [];
                 this.morningEvent = data.morningEvent || null;
                 this.memorial = data.memorial || [];

@@ -64,12 +64,12 @@ const CHOICE_EVENTS = [
         description: "A wounded traveler stumbles into your guild. \"Please... bandits on the road... I can pay.\" He clutches a bloodied coin purse.",
         choices: [
             {
-                text: "Help him (Use your supplies)",
-                effects: { gold: -15, townRep: 2 }
+                text: "Help him with your supplies (-20G)",
+                effects: { gold: -20, townRep: 3, addFlag: 'helped_wounded_traveler' }
             },
             {
-                text: "Send him to the temple",
-                effects: { townRep: -1 }
+                text: "Take his purse as payment for directions to the temple (+15G)",
+                effects: { gold: 15 }
             }
         ]
     },
@@ -329,12 +329,12 @@ const CHOICE_EVENTS = [
         description: "A nervous farmer bursts into your guild hall, eyes darting. \"Please, you have to listen! Strange folk in the woods... red robes, chanting under the moon. My daughter saw them—and now she won't stop screaming about blood. The guards say I'm mad, but I know what I saw!\"",
         choices: [
             {
-                text: "Investigate (This sounds serious)",
-                effects: { addFlag: 'cult_investigation_started', crownRep: 1 }
+                text: "Investigate (Commit resources to this)",
+                effects: { gold: -25, addFlag: 'cult_investigation_started', crownRep: 1 }
             },
             {
-                text: "Ignore (We're not the town guard)",
-                effects: { townRep: -1, addFlag: 'ignored_cult_warning' }
+                text: "Ignore (Take his coin purse and send him away)",
+                effects: { gold: 40, addFlag: 'ignored_cult_warning' }
             }
         ]
     },
@@ -353,12 +353,12 @@ const CHOICE_EVENTS = [
         description: "After the day's work, a servant in House Ashford livery approaches you nervously. \"My master... Lord Ashford... he's been meeting strange folk. Mercenaries, assassins maybe. I fear something terrible is planned. Please, someone must investigate before it's too late.\"",
         choices: [
             {
-                text: "Agree to look into it (A noble conspiracy?)",
-                effects: { addFlag: 'noble_rumors_heard', crownRep: 1 }
+                text: "Agree to investigate (Risky - nobles have long memories)",
+                effects: { addFlag: 'noble_rumors_heard' }
             },
             {
-                text: "Refuse (Not our business)",
-                effects: { gold: 20, addFlag: 'ignored_noble_warning' }
+                text: "Refuse and report him for sedition (Safe gold, betray the servant)",
+                effects: { gold: 50, crownRep: 1, addFlag: 'ignored_noble_warning' }
             }
         ]
     },
@@ -423,6 +423,108 @@ const CHOICE_EVENTS = [
             {
                 text: "Decline (We have nothing to prove)",
                 effects: { townRep: -2, crownRep: -1 }
+            }
+        ]
+    },
+
+    // ============================================
+    // CROWN MISSIONS - Mandatory weekly quests
+    // These trigger every 7 days (days 7, 14, 21, etc.)
+    // ============================================
+
+    {
+        id: 'crown_mission_bandits',
+        phase: 'MORNING',
+        probability: 1.0, // Guaranteed when condition met
+        oneTime: false,
+        conditions: {
+            dayMultipleOf: 7, // Only on days 7, 14, 21...
+            requireNotFlag: 'crown_mission_active'
+        },
+        title: "The Crown's Demand",
+        description: "A royal herald arrives with a sealed decree bearing the King's seal. \"By order of His Majesty: Bandit activity on the Northern Road threatens the Crown's tax collectors. Your guild is COMMANDED to address this within 3 days. The Crown remembers those who serve... and those who fail.\"",
+        choices: [
+            {
+                text: "Accept immediately (Best outcome)",
+                effects: {
+                    addFlag: 'crown_mission_active',
+                    spawnCrownQuest: {
+                        id: 'crown_bandit_hunt',
+                        name: 'Crown Mission: Clear the Northern Road',
+                        rank: 'C',
+                        type: 'Monster Hunt',
+                        duration: 2,
+                        location: 'cliffs',
+                        isCrownMission: true,
+                        client: 'The Crown',
+                        description: 'By royal decree: Eliminate the bandit presence threatening Crown tax collectors on the Northern Road.',
+                        requirements: { primary: 'STR 5 OR DEX 6' },
+                        rewards: { gold: 100, xp: 50, crownRep: 3, rep: 1 }
+                    }
+                }
+            },
+            {
+                text: "Acknowledge but delay (Risky)",
+                effects: {
+                    addFlag: 'crown_mission_delayed',
+                    crownRep: -1,
+                    delayedCrownQuest: {
+                        id: 'crown_bandit_hunt_delayed',
+                        name: 'Crown Mission: Clear the Northern Road (URGENT)',
+                        rank: 'C',
+                        type: 'Monster Hunt',
+                        duration: 2,
+                        location: 'cliffs',
+                        isCrownMission: true,
+                        client: 'The Crown (URGENT)',
+                        description: 'The Crown grows impatient. Complete this mission or face consequences.',
+                        requirements: { primary: 'STR 5 OR DEX 6' },
+                        rewards: { gold: 80, xp: 50, crownRep: 1, rep: 1 },
+                        deadline: 2 // Must complete in 2 days or lose more Crown Rep
+                    }
+                }
+            }
+        ]
+    },
+
+    {
+        id: 'crown_mission_escort',
+        phase: 'MORNING',
+        probability: 1.0,
+        oneTime: false,
+        conditions: {
+            dayMultipleOf: 7,
+            requireNotFlag: 'crown_mission_active',
+            minDay: 8 // Alternative Crown mission after day 7
+        },
+        title: "Royal Escort Required",
+        description: "A courier in royal livery hands you a scroll. \"The Crown's census officials require escort to Millbrook. Bandits and beasts alike threaten their passage. Your guild has been selected for this honor. Do NOT disappoint His Majesty.\"",
+        choices: [
+            {
+                text: "Assign immediately",
+                effects: {
+                    addFlag: 'crown_mission_active',
+                    spawnCrownQuest: {
+                        id: 'crown_escort_census',
+                        name: 'Crown Mission: Escort Census Officials',
+                        rank: 'D',
+                        type: 'Escort',
+                        duration: 2,
+                        location: 'village',
+                        isCrownMission: true,
+                        client: 'The Crown',
+                        description: 'Escort royal census officials through dangerous territory. The Crown tracks its subjects\' loyalty.',
+                        requirements: { primary: 'VIT 5' },
+                        rewards: { gold: 80, xp: 40, crownRep: 2, rep: 2 }
+                    }
+                }
+            },
+            {
+                text: "Request postponement",
+                effects: {
+                    crownRep: -2,
+                    addFlag: 'crown_postponed'
+                }
             }
         ]
     }

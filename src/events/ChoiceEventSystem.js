@@ -51,6 +51,12 @@ class ChoiceEventSystem {
             // Blocking flags (event won't trigger if flag is set)
             if (event.conditions?.blockedByFlag && this.storyFlags[event.conditions.blockedByFlag]) return false;
 
+            // Required NOT flag (for Crown missions - won't trigger if flag IS set)
+            if (event.conditions?.requireNotFlag && this.storyFlags[event.conditions.requireNotFlag]) return false;
+
+            // Day multiple requirement (for weekly Crown missions)
+            if (event.conditions?.dayMultipleOf && gameState.day % event.conditions.dayMultipleOf !== 0) return false;
+
             // Cooldown check
             const lastTriggered = this.eventCooldowns[event.id];
             if (lastTriggered && gameState.day - lastTriggered < (event.cooldownDays || 5)) return false;
@@ -139,6 +145,15 @@ class ChoiceEventSystem {
         if (effects.removeFlag) {
             delete this.storyFlags[effects.removeFlag];
             results.appliedEffects.push({ type: 'removeFlag', flag: effects.removeFlag });
+        }
+
+        // Spawn Crown Quest (adds to available quests immediately)
+        if (effects.spawnCrownQuest) {
+            const crownQuest = { ...effects.spawnCrownQuest };
+            crownQuest.id = crownQuest.id + '_' + gameState.day; // Unique ID per spawn
+            gameState.availableQuests.unshift(crownQuest); // Add at front (priority)
+            results.appliedEffects.push({ type: 'crownQuest', questName: crownQuest.name });
+            console.log(`👑 Crown Mission spawned: ${crownQuest.name}`);
         }
 
         // Record in history

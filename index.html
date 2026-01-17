@@ -29,13 +29,33 @@
 
         body {
             font-family: var(--font-main);
-            background-color: var(--bg-dark);
+            background-color: #0a0a0a;
             color: var(--text-light);
             padding: 0;
             margin: 0;
-            height: 100vh;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Game Container - Fixed 1280x720 Window */
+        #game-container {
+            width: 1280px;
+            height: 720px;
+            position: relative;
             overflow: hidden;
-            /* Prevent scroll on body, handle inside containers */
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+            border: 2px solid #333;
+            background: #1a1510;
+        }
+
+        /* On smaller screens, scale down proportionally */
+        @media (max-width: 1300px) or (max-height: 750px) {
+            #game-container {
+                width: min(100vw - 20px, calc((100vh - 20px) * 1.7778));
+                height: min(100vh - 20px, calc((100vw - 20px) / 1.7778));
+            }
         }
 
         /* --- LAYOUT UTILITIES --- */
@@ -263,96 +283,934 @@
         .hidden {
             display: none !important;
         }
+
+        /* Flip Card Styles */
+        .flip-card {
+            perspective: 1000px;
+            width: 110px;
+            height: 140px;
+            cursor: pointer;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+            transform-origin: center center;
+        }
+
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 4px;
+            border: 2px solid #5d4037;
+            box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .flip-card-front {
+            background: linear-gradient(to bottom, #e8dcc8, #d4c4a8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+
+        .flip-card-back {
+            background: linear-gradient(to bottom, #f5e6d3, #e5d6c3);
+            transform: rotateY(180deg);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .flip-card-front h3 {
+            font-family: var(--font-display);
+            color: var(--ink);
+            text-align: center;
+            margin: 4px 0 2px 0;
+            font-size: 0.65rem;
+            line-height: 1.2;
+        }
+
+        .flip-card-front .quest-icon {
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .flip-card-front .quest-tier {
+            font-size: 0.55rem;
+            color: #666;
+            margin-top: auto;
+        }
+
+        .flip-card-back h4 {
+            font-family: var(--font-display);
+            color: var(--ink);
+            margin: 0 0 4px 0;
+            font-size: 0.6rem;
+            border-bottom: 1px solid var(--wood-light);
+            padding-bottom: 3px;
+        }
+
+        .flip-card-back .quest-details {
+            font-size: 0.5rem;
+            color: var(--ink);
+            flex: 1;
+            overflow-y: auto;
+            line-height: 1.3;
+        }
+
+        .flip-card-back .quest-details p {
+            margin: 2px 0;
+        }
+
+        .flip-card-back .quest-accept-btn {
+            margin-top: 4px;
+            padding: 4px 8px;
+            background: linear-gradient(to bottom, var(--gold), var(--gold-dark));
+            border: 1px solid var(--wood-dark);
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: var(--font-display);
+            font-size: 0.55rem;
+            color: var(--ink);
+        }
+
+        .flip-card-back .quest-accept-btn:hover {
+            background: linear-gradient(to bottom, #ffd700, var(--gold));
+        }
+
+        /* Quest Board Grid Layout */
+        .quest-board-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 110px);
+            grid-template-rows: repeat(2, 140px);
+            gap: 12px;
+            justify-content: center;
+            align-content: center;
+        }
+
+        /* Map POI Signpost Styles */
+        .poi-sign {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s ease, z-index 0s;
+        }
+
+        .poi-sign:hover {
+            transform: translate(-50%, -100%) scale(1.1);
+            z-index: 20;
+        }
+
+        .poi-sign-post {
+            width: 6px;
+            height: 30px;
+            background: linear-gradient(to right, #5d4037, #8d6e63, #5d4037);
+            margin: 0 auto;
+            border-radius: 2px;
+            box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .poi-sign-board {
+            background: linear-gradient(135deg, #d7ccc8 0%, #bcaaa4 50%, #a1887f 100%);
+            border: 2px solid #5d4037;
+            border-radius: 4px;
+            padding: 6px 10px;
+            min-width: 80px;
+            max-width: 120px;
+            text-align: center;
+            box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .poi-sign-board::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+            border-radius: 2px;
+        }
+
+        .poi-sign-title {
+            font-family: var(--font-display);
+            font-size: 0.55rem;
+            color: #3e2723;
+            font-weight: bold;
+            line-height: 1.2;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .poi-sign-reward {
+            font-size: 0.5rem;
+            color: #5d4037;
+            margin-top: 2px;
+        }
+
+        .poi-sign-tier {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #ffd54f, #ff8f00);
+            border: 2px solid #5d4037;
+            border-radius: 50%;
+            font-size: 0.5rem;
+            font-weight: bold;
+            color: #3e2723;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* POI Expanded Quest Panel */
+        .poi-quest-panel {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, #f5e6d3, #e5d6c3);
+            border: 3px solid #5d4037;
+            border-radius: 6px;
+            padding: 12px;
+            min-width: 180px;
+            max-width: 220px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            display: none;
+        }
+
+        .poi-quest-panel.active {
+            display: block;
+        }
+
+        .poi-quest-panel h4 {
+            font-family: var(--font-display);
+            color: #3e2723;
+            margin: 0 0 8px 0;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #8d6e63;
+            padding-bottom: 5px;
+        }
+
+        .poi-quest-panel .quest-info {
+            font-size: 0.65rem;
+            color: #5d4037;
+            line-height: 1.4;
+        }
+
+        .poi-quest-panel .quest-info p {
+            margin: 3px 0;
+        }
+
+        .poi-quest-panel .quest-desc {
+            font-style: italic;
+            color: #6d4c41;
+            margin-top: 6px;
+            font-size: 0.55rem;
+            max-height: 60px;
+            overflow-y: auto;
+        }
+
+        .poi-quest-panel .quest-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .poi-quest-panel .btn-accept {
+            flex: 1;
+            padding: 6px 8px;
+            background: linear-gradient(to bottom, #66bb6a, #43a047);
+            border: 2px solid #2e7d32;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.6rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .poi-quest-panel .btn-accept:hover {
+            background: linear-gradient(to bottom, #81c784, #66bb6a);
+        }
+
+        .poi-quest-panel .btn-close {
+            padding: 6px 10px;
+            background: linear-gradient(to bottom, #757575, #616161);
+            border: 2px solid #424242;
+            border-radius: 4px;
+            color: white;
+            font-size: 0.6rem;
+            cursor: pointer;
+        }
+
+        /* Volume Slider */
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, var(--gold), var(--gold-dark));
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--parchment);
+            border: 2px solid var(--wood-dark);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Quest Board Grid */
+        .quest-board-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 40px 60px;
+            justify-items: center;
+            align-items: start;
+        }
+
+        /* Map POI Signs */
+        .poi-sign {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s ease;
+        }
+
+        .poi-sign:hover {
+            transform: translate(-50%, -100%) scale(1.1);
+            z-index: 50;
+        }
+
+        .poi-sign-board {
+            background: linear-gradient(180deg, #2d1f14 0%, #1a1208 100%);
+            border: 2px solid #5c4a3a;
+            border-radius: 4px;
+            padding: 6px 10px;
+            text-align: center;
+            min-width: 80px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .poi-sign-tier {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: #b8860b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .poi-sign-title {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--parchment);
+            margin: 2px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
+
+        .poi-sign-reward {
+            font-size: 0.7rem;
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .poi-sign-post {
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #5c4a3a, #3a2d22);
+            margin: 0 auto;
+            border-radius: 0 0 2px 2px;
+        }
+
+        /* Quest Info Panel (appears on click) */
+        .poi-quest-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 220px;
+            background: linear-gradient(180deg, #f5e6d3 0%, #e8d5c0 100%);
+            border: 2px solid #5c4a3a;
+            border-radius: 6px;
+            padding: 12px;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            margin-top: 5px;
+        }
+
+        .poi-quest-panel.active {
+            display: block;
+        }
+
+        .poi-quest-panel h4 {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: var(--ink);
+            margin: 0 0 8px 0;
+            border-bottom: 1px solid #5c4a3a;
+            padding-bottom: 5px;
+        }
+
+        .poi-quest-panel .quest-info {
+            font-size: 0.75rem;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .poi-quest-panel .quest-info p {
+            margin: 3px 0;
+        }
+
+        .poi-quest-panel .quest-desc {
+            font-size: 0.7rem;
+            font-style: italic;
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .poi-quest-panel .quest-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .poi-quest-panel .btn-accept {
+            background: linear-gradient(180deg, #4a7c4e 0%, #3a5c3e 100%);
+            border: 1px solid #2d4a30;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .poi-quest-panel .btn-accept:hover {
+            transform: scale(1.05);
+        }
+
+        .poi-quest-panel .btn-close {
+            background: #6a5a4a;
+            border: 1px solid #4a3a2a;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .poi-quest-panel .btn-close:hover {
+            background: #7a6a5a;
+        }
+
+        /* Location Flag Styles */
+        .location-flag {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            pointer-events: auto;
+            z-index: 10;
+            transition: transform 0.2s ease, z-index 0s;
+        }
+
+        .location-flag:hover {
+            transform: translate(-50%, -100%) scale(1.15);
+            z-index: 30;
+        }
+
+        .location-flag-marker {
+            width: 28px;
+            height: 36px;
+            position: relative;
+        }
+
+        .location-flag-pole {
+            position: absolute;
+            left: 50%;
+            bottom: 0;
+            width: 3px;
+            height: 30px;
+            background: linear-gradient(to right, #5d4037, #8d6e63, #5d4037);
+            transform: translateX(-50%);
+            border-radius: 1px;
+        }
+
+        .location-flag-banner {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 20px;
+            height: 14px;
+            border-radius: 2px;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5rem;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+        }
+
+        .location-flag.empty .location-flag-banner {
+            background: linear-gradient(135deg, #757575, #616161);
+        }
+
+        .location-flag.active .location-flag-banner {
+            background: linear-gradient(135deg, #c62828, #b71c1c);
+            animation: flag-pulse 2s infinite;
+        }
+
+        @keyframes flag-pulse {
+
+            0%,
+            100% {
+                box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 8px rgba(198, 40, 40, 0.6);
+            }
+        }
+
+        .location-flag-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 14px;
+            height: 14px;
+            background: var(--gold);
+            border: 1px solid #5d4037;
+            border-radius: 50%;
+            font-size: 0.5rem;
+            font-weight: bold;
+            color: #3e2723;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Adventurer Card Styles */
+        .adventurer-card {
+            background: linear-gradient(180deg, #3a2d22 0%, #2a1f18 100%);
+            border: 2px solid #5c4a3a;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: transform 0.15s, box-shadow 0.15s;
+            user-select: none;
+        }
+
+        .adventurer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            border-color: var(--gold);
+        }
+
+        .adventurer-card:active {
+            cursor: grabbing;
+        }
+
+        .adventurer-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .adventurer-card.assigned {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .adventurer-card .adv-name {
+            font-family: var(--font-display);
+            color: var(--parchment);
+            font-size: 0.75rem;
+            margin-bottom: 3px;
+        }
+
+        .adventurer-card .adv-class {
+            color: #8d8d8d;
+            font-size: 0.6rem;
+        }
+
+        .adventurer-card .adv-level {
+            color: var(--gold);
+            font-size: 0.55rem;
+        }
+
+        /* Quest List Item Styles */
+        .quest-list-item {
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .quest-list-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .quest-list-item .quest-rank {
+            font-weight: bold;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .quest-list-item .quest-rank.rank-F {
+            background: #9E9E9E;
+            color: white;
+        }
+
+        .quest-list-item .quest-rank.rank-D {
+            background: #2196F3;
+            color: white;
+        }
+
+        .quest-list-item .quest-rank.rank-C {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .quest-list-item .quest-rank.rank-B {
+            background: #FF9800;
+            color: white;
+        }
+
+        .quest-list-item .quest-rank.rank-A {
+            background: #F44336;
+            color: white;
+        }
+
+        .quest-list-item .quest-rank.rank-S {
+            background: #9C27B0;
+            color: white;
+        }
+
+        .quest-list-item .quest-name {
+            color: var(--parchment);
+            font-size: 0.7rem;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Drop Zone Styles */
+        #quest-drop-zone.drag-over {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+        }
+
+        #quest-drop-zone.drag-over p {
+            color: #4CAF50;
+        }
+
+        /* Assigned Hero Display */
+        .assigned-hero-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(76, 175, 80, 0.15);
+            border: 2px solid #4CAF50;
+            border-radius: 6px;
+        }
+
+        .assigned-hero-display .hero-icon {
+            font-size: 1.5rem;
+        }
+
+        .assigned-hero-display .hero-info {
+            flex: 1;
+        }
+
+        .assigned-hero-display .hero-name {
+            font-weight: bold;
+            color: #3e2723;
+            font-size: 0.85rem;
+        }
+
+        .assigned-hero-display .hero-class {
+            color: #666;
+            font-size: 0.7rem;
+        }
+
+        .assigned-hero-display .btn-unassign {
+            padding: 4px 8px;
+            font-size: 0.65rem;
+            background: #c62828;
+            border: 1px solid #b71c1c;
+            color: white;
+            border-radius: 3px;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- PERSISTENT HUD (Always Visible During Gameplay) -->
-    <div id="game-hud"
-        style="display:none; position:fixed; top:0; left:0; right:0; z-index:500; background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0)); padding:10px 20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto;">
-            <div style="display:flex; gap:30px; align-items:center;">
-                <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--parchment);">📅 Day <span
-                        id="hud-day">1</span></span>
-                <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--gold);">💰 <span
-                        id="hud-gold">350</span> G</span>
-                <span style="font-family:var(--font-display); font-size:1rem; color:#aaa;">⭐ Town: <span
-                        id="hud-rep">5</span></span>
-                <span style="font-family:var(--font-display); font-size:1rem; color:#9370db;">👑 Crown: <span
-                        id="hud-crown-rep">0</span></span>
-            </div>
-            <div>
-                <button onclick="UI.openSettings()"
-                    style="background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">⚙️</button>
+    <!-- GAME CONTAINER (Fixed Aspect Ratio) -->
+    <div id="game-container">
+
+        <!-- PERSISTENT HUD (Always Visible During Gameplay) -->
+        <div id="game-hud"
+            style="display:none; position:absolute; top:0; left:0; right:0; z-index:500; background: linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0)); padding:10px 20px;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; max-width:1200px; margin:0 auto;">
+                <div style="display:flex; gap:30px; align-items:center;">
+                    <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--parchment);">📅 Day
+                        <span id="hud-day">1</span></span>
+                    <span style="font-family:var(--font-display); font-size:1.1rem; color:var(--gold);">💰 <span
+                            id="hud-gold">350</span> G</span>
+                    <span style="font-family:var(--font-display); font-size:1rem; color:#aaa;">⭐ Town: <span
+                            id="hud-rep">5</span></span>
+                    <span style="font-family:var(--font-display); font-size:1rem; color:#9370db;">👑 Crown: <span
+                            id="hud-crown-rep">0</span></span>
+                </div>
+                <div>
+                    <button onclick="UI.openSettings()"
+                        style="background:none; border:none; color:#888; cursor:pointer; font-size:1.2rem;">⚙️</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- SETTINGS MODAL -->
-    <div id="settings-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1100; align-items:center; justify-content:center;">
-        <div class="quest-scroll" style="width:400px; height:auto;">
-            <h2 style="font-family:var(--font-display);">⚙️ Settings</h2>
-            <br>
-            <button class="btn" onclick="UI.returnToMainMenu()"
-                style="width:100%; margin-bottom:10px; background:#555; border-color:#333;">🏠 Main Menu</button>
-            <button class="btn" onclick="UI.closeSettings()" style="width:100%;">Continue Playing</button>
-        </div>
-    </div>
+        <!-- SETTINGS MODAL -->
+        <div id="settings-modal"
+            style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1100; align-items:center; justify-content:center;">
+            <div class="quest-scroll" style="width:400px; height:auto;">
+                <h2 style="font-family:var(--font-display);">⚙️ Settings</h2>
 
-    <!-- GAME OVER MODAL (Crown Rep = 0) -->
-    <div id="game-over-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(30,0,0,0.95); z-index:2000; align-items:center; justify-content:center;">
-        <div style="text-align:center; max-width:600px; padding:40px;">
-            <h1
-                style="font-family:var(--font-display); font-size:4rem; color:#8b0000; text-shadow:0 0 40px #500000; margin-bottom:20px;">
-                👑 ROYAL DECREE
-            </h1>
-            <h2 style="font-family:var(--font-display); font-size:2rem; color:#ff4444; margin-bottom:30px;">
-                LICENSE REVOKED
-            </h2>
-            <p style="color:#ccc; font-size:1.2rem; line-height:1.6; margin-bottom:40px;">
-                By order of the Crown, your Guild Charter has been revoked.<br>
-                Your reputation with the Royal Court has fallen beyond repair.<br>
-                The guards escort you from the premises.
-            </p>
-            <div style="border-top:2px solid #500000; padding-top:30px;">
-                <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">
-                    Days Survived: <span id="game-over-days" style="color:var(--gold);">0</span> |
-                    Final Gold: <span id="game-over-gold" style="color:var(--gold);">0</span>G
-                </p>
+                <!-- Volume Controls -->
+                <div style="margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+                    <label style="font-family:var(--font-display); color:var(--ink); font-size:0.9rem;">🔊 Music
+                        Volume</label>
+                    <div class="volume-container">
+                        <button onclick="AudioManager.toggleMute()" id="mute-btn"
+                            style="background:none; border:none; font-size:1.2rem; cursor:pointer;">🔊</button>
+                        <input type="range" min="0" max="100" value="50" class="volume-slider" id="volume-slider"
+                            onchange="AudioManager.setVolume(this.value / 100)">
+                        <span id="volume-display" style="font-size:0.8rem; color:var(--ink); min-width:35px;">50%</span>
+                    </div>
+                </div>
+
                 <button class="btn" onclick="UI.returnToMainMenu()"
-                    style="font-size:1.3rem; padding:15px 50px; background:linear-gradient(to bottom, #8b0000, #500000); border-color:#a00;">
-                    Return to Main Menu
+                    style="width:100%; margin-bottom:10px; background:#555; border-color:#333;">🏠 Main Menu</button>
+                <button class="btn" onclick="UI.closeSettings()" style="width:100%;">Continue Playing</button>
+            </div>
+        </div>
+
+        <!-- GAME OVER MODAL (Crown Rep = 0) -->
+        <div id="game-over-modal"
+            style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(30,0,0,0.95); z-index:2000; align-items:center; justify-content:center;">
+            <div style="text-align:center; max-width:600px; padding:40px;">
+                <h1
+                    style="font-family:var(--font-display); font-size:4rem; color:#8b0000; text-shadow:0 0 40px #500000; margin-bottom:20px;">
+                    👑 ROYAL DECREE
+                </h1>
+                <h2 style="font-family:var(--font-display); font-size:2rem; color:#ff4444; margin-bottom:30px;">
+                    LICENSE REVOKED
+                </h2>
+                <p style="color:#ccc; font-size:1.2rem; line-height:1.6; margin-bottom:40px;">
+                    By order of the Crown, your Guild Charter has been revoked.<br>
+                    Your reputation with the Royal Court has fallen beyond repair.<br>
+                    The guards escort you from the premises.
+                </p>
+                <div style="border-top:2px solid #500000; padding-top:30px;">
+                    <p style="color:#888; font-size:0.9rem; margin-bottom:20px;">
+                        Days Survived: <span id="game-over-days" style="color:var(--gold);">0</span> |
+                        Final Gold: <span id="game-over-gold" style="color:var(--gold);">0</span>G
+                    </p>
+                    <button class="btn" onclick="UI.returnToMainMenu()"
+                        style="font-size:1.3rem; padding:15px 50px; background:linear-gradient(to bottom, #8b0000, #500000); border-color:#a00;">
+                        Return to Main Menu
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="screen-main-menu" class="screen"
+            style="background: #1a1510 url('assets/ui/backgrounds/start_screen.jpg') top center no-repeat; background-size: auto 100%; padding-top:0;">
+
+            <!-- Invisible clickable area over the "Start Journey" scroll in image -->
+            <div onclick="UI.startNewGame()"
+                style="position:absolute; top:58%; left:50%; transform:translateX(-50%); width:35%; height:10%; cursor:pointer; z-index:10;">
+            </div>
+
+            <!-- Continue button (positioned at bottom) -->
+            <div
+                style="position:absolute; bottom:3%; left:50%; transform:translateX(-50%); text-align:center; z-index:10;">
+                <button class="btn" id="continue-btn" onclick="UI.continueGame()"
+                    style="font-size:0.9rem; padding:8px 25px; background:rgba(40,30,20,0.9); border:2px solid #5d4037; color:var(--parchment);"
+                    disabled>
+                    Continue
+                </button>
+                <p id="save-status" style="color:#777; margin-top:8px; font-size:0.75rem;"></p>
+            </div>
+        </div>
+
+        <!-- INTRO SEQUENCE (Keeper Welcome) -->
+        <div id="screen-intro" class="screen"
+            style="background: #1a1510 url('assets/ui/backgrounds/tavern_keeper.jpg') top center no-repeat; background-size: auto 100%; padding-top:0; cursor:pointer;">
+
+            <!-- Dialogue Box -->
+            <div id="intro-dialogue-box"
+                style="position:absolute; bottom:10%; left:50%; transform:translateX(-50%); width:80%; max-width:700px; z-index:10;">
+                <div
+                    style="background: linear-gradient(to bottom, #f5e6d3, #d4c4b0); border:4px solid #5d4037; border-radius:8px; padding:25px 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                    <p id="intro-dialogue-text"
+                        style="font-family:var(--font-main); font-size:1.3rem; color:var(--ink); line-height:1.6; margin:0; text-align:center;">
+                        <!-- Dialogue inserted by JS -->
+                    </p>
+                    <p style="text-align:center; margin-top:15px; color:#888; font-size:0.85rem; font-style:italic;">—
+                        Click anywhere to continue —</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUEST BOARD SCREEN (Pick quests from tavern board) -->
+        <div id="screen-quest-board" class="screen"
+            style="background: #1a1510 url('assets/ui/backgrounds/board_empty.jpg') top center no-repeat; background-size: auto 100%; padding-top:0;">
+
+            <!-- Quest cards overlay on the wooden board -->
+            <div id="quest-board-cards" class="quest-board-grid"
+                style="position:absolute; top:18%; left:50%; transform:translateX(-50%);">
+                <!-- Quest flip cards will be inserted here by JS -->
+            </div>
+
+            <!-- Proceed to Map button -->
+            <div style="position:absolute; bottom:5%; left:50%; transform:translateX(-50%); text-align:center;">
+                <button class="btn" onclick="UI.proceedToMap()" id="proceed-to-map-btn"
+                    style="font-size:1rem; padding:12px 30px; background:linear-gradient(to bottom, var(--gold), var(--gold-dark)); border:3px solid var(--wood-dark); color:var(--ink);">
+                    📜 View Quest Map
+                </button>
+                <p style="color:#aaa; margin-top:8px; font-size:0.8rem;">Select quests from the board, then view the map
+                </p>
+            </div>
+        </div>
+
+        <!-- MAP VIEW SCREEN (Assign adventurers to quests) -->
+        <div id="screen-map" class="screen"
+            style="background: #1a1510 url('assets/ui/backgrounds/war_table_map.jpg') center center no-repeat; background-size: contain; padding-top:0;">
+
+            <!-- Adventurer Panel (left side) -->
+            <div id="adventurer-panel"
+                style="position:absolute; top:60px; left:10px; width:180px; max-height:calc(100% - 140px); background:rgba(30,20,15,0.95); border:2px solid #5c4a3a; border-radius:8px; padding:12px; z-index:100; overflow-y:auto;">
+                <h3
+                    style="margin:0 0 10px 0; font-family:var(--font-display); color:var(--gold); font-size:0.85rem; border-bottom:1px solid #5c4a3a; padding-bottom:8px;">
+                    ⚔️ Your Adventurers
+                </h3>
+                <div id="adventurer-list">
+                    <p style="color:#888; font-size:0.75rem; font-style:italic;">No adventurers hired yet</p>
+                </div>
+            </div>
+
+            <!-- Location Flags Layer (positioned over map) -->
+            <div id="location-flags-layer"
+                style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+                <!-- Location flags will be inserted by JS -->
+            </div>
+
+            <!-- Quest List Popup (hidden by default) -->
+            <div id="quest-list-popup" class="hidden"
+                style="position:absolute; background:rgba(30,20,15,0.98); border:2px solid #5c4a3a; border-radius:6px; padding:10px; min-width:160px; max-width:200px; z-index:200; box-shadow:0 4px 15px rgba(0,0,0,0.6);">
+                <h4
+                    style="margin:0 0 8px 0; font-family:var(--font-display); color:var(--gold); font-size:0.8rem; border-bottom:1px solid #5c4a3a; padding-bottom:5px;">
+                    <span id="popup-location-name">Location</span>
+                </h4>
+                <div id="popup-quest-list">
+                    <!-- Quest items inserted by JS -->
+                </div>
+            </div>
+
+            <!-- Expanded Quest Detail Card (hidden by default) -->
+            <div id="quest-detail-card" class="hidden"
+                style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:320px; background:linear-gradient(180deg, #f5e6d3 0%, #e8d5c0 100%); border:3px solid #5d4037; border-radius:8px; padding:20px; z-index:300; box-shadow:0 8px 30px rgba(0,0,0,0.7);">
+                <div id="quest-detail-content">
+                    <!-- Quest details inserted by JS -->
+                </div>
+                <div id="quest-drop-zone"
+                    style="margin-top:15px; padding:15px; border:2px dashed #5c4a3a; border-radius:6px; text-align:center; background:rgba(0,0,0,0.1); transition:all 0.2s;">
+                    <p style="margin:0; color:#666; font-size:0.8rem; font-style:italic;">
+                        🎯 Drag an adventurer here to assign
+                    </p>
+                </div>
+                <div style="margin-top:15px; display:flex; gap:10px;">
+                    <button class="btn" onclick="UI.closeQuestDetail()"
+                        style="flex:1; font-size:0.8rem; padding:8px; background:#555; border-color:#333;">
+                        ✕ Close
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hire Adventurers button (inside map screen) -->
+            <div style="position:absolute; bottom:5%; left:20px; z-index:50;">
+                <button class="btn" onclick="UI.goToTavern()"
+                    style="font-size:0.9rem; padding:8px 20px; background:linear-gradient(to bottom, #5d8aa8, #4a7896); border:2px solid #3d6882; color:var(--parchment);">
+                    👤 Hire Adventurers
+                </button>
+            </div>
+
+            <!-- End Day button (inside map screen) -->
+            <div style="position:absolute; bottom:5%; right:20px; z-index:50;">
+                <button class="btn" onclick="UI.endDayFromMap()"
+                    style="font-size:1rem; padding:10px 25px; background:linear-gradient(to bottom, #4a7c4e, #3a5c3e); border:2px solid #2d4a30; color:var(--parchment);">
+                    🌙 End Day
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MAIN MENU (Entry Point) -->
-    <div id="screen-main-menu" class="screen wood-bg active">
-        <div
-            style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-            <h1
-                style="font-family: var(--font-display); font-size: 5rem; color: var(--gold); text-shadow: 0 0 30px black; margin-bottom: 20px;">
-                TAVERN GUILD MASTER
-            </h1>
-            <p style="color: var(--parchment); font-size: 1.3rem; font-family: var(--font-main); margin-bottom: 60px;">
-                Manage your adventurer's guild and send heroes on quests
-            </p>
 
-            <button class="btn btn-green" onclick="UI.startNewGame()"
-                style="font-size:1.5rem; padding: 20px 60px; margin-bottom: 20px;">
-                ⚔️ New Game
-            </button>
-            <button class="btn" id="continue-btn" onclick="UI.continueGame()"
-                style="font-size:1.3rem; padding: 15px 50px; background:#555; border-color:#333;" disabled>
-                📜 Continue
-            </button>
-            <p id="save-status" style="color:#888; margin-top:15px; font-size:0.9rem;"></p>
-        </div>
-    </div>
+    <!-- AUDIO ELEMENT (Background Music) -->
+    <audio id="bg-music" loop></audio>
 
     <!-- VISITOR EVENT SCREEN (Only shows when there's a morning visitor) -->
     <div id="screen-morning" class="screen wood-bg">
@@ -361,7 +1219,8 @@
             <h1
                 style="font-family: var(--font-display); font-size: 4rem; color: var(--gold); text-shadow: 0 0 20px black; margin-bottom: 0;">
                 MORNING HAS BROKEN</h1>
-            <h2 style="color: var(--parchment); font-family: var(--font-main);">Day <span id="morning-day">1</span></h2>
+            <h2 style="color: var(--parchment); font-family: var(--font-main);">Day <span id="morning-day">1</span>
+            </h2>
         </div>
 
         <!-- VISITOR MODAL (Overlay) -->
@@ -485,8 +1344,13 @@
         <div class="header-bar">
             <span>📋 YOUR DESK</span>
             <div id="desk-queue-indicator">Waiting: <span id="desk-queue-count">0</span> adventurers</div>
-            <button class="btn" onclick="UI.skipToRoster()" id="skip-to-roster-btn">Skip to Roster ➔</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" onclick="UI.showMap()" style="background:#5d8aa8; border-color:#3d6882;">🗺️ Back to
+                    Map</button>
+                <button class="btn" onclick="UI.skipToRoster()" id="skip-to-roster-btn">Skip to Roster ➔</button>
+            </div>
         </div>
+
 
         <div
             style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:80px;">
@@ -495,7 +1359,8 @@
             <div id="desk-speech-bubble"
                 style="max-width:400px; background:rgba(255,255,255,0.95); border-radius:8px; padding:10px 16px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
                 <p id="desk-adventurer-greeting"
-                    style="margin:0; font-size:0.9rem; font-style:italic; color:#2c1810; text-align:center;">"..."</p>
+                    style="margin:0; font-size:0.9rem; font-style:italic; color:#2c1810; text-align:center;">"..."
+                </p>
             </div>
 
             <!-- Adventurer Card - Compact design -->
@@ -508,7 +1373,8 @@
                     </div>
                     <div style="flex:1; min-width:0;">
                         <h2 id="desk-char-name"
-                            style="font-family:var(--font-display); margin:0; font-size:1.1rem; line-height:1.2;"></h2>
+                            style="font-family:var(--font-display); margin:0; font-size:1.1rem; line-height:1.2;">
+                        </h2>
                         <div style="color:#888; font-size:0.8rem; margin-top:2px;">
                             <span id="desk-char-class"></span> • <span id="desk-char-level"></span>
                         </div>
@@ -679,6 +1545,66 @@
     <script src="src/narrative/NarrativeGenerator.js"></script>
 
     <script>
+        // ============== AUDIO MANAGER ==============
+        const AudioManager = {
+            audio: null,
+            volume: 0.5,
+            isMuted: false,
+            currentTrack: null,
+
+            init() {
+                this.audio = document.getElementById('bg-music');
+                this.audio.volume = this.volume;
+
+                // Update volume slider display
+                const slider = document.getElementById('volume-slider');
+                if (slider) slider.value = this.volume * 100;
+                this.updateVolumeDisplay();
+            },
+
+            playMusic(trackName) {
+                if (!this.audio) return;
+
+                // Don't restart if same track is playing
+                if (this.currentTrack === trackName && !this.audio.paused) return;
+
+                this.currentTrack = trackName;
+                this.audio.src = `Music/${trackName}`;
+                this.audio.play().catch(e => {
+                    // Autoplay blocked - will play on first user interaction
+                    console.log('Music autoplay blocked, will play on interaction');
+                });
+            },
+
+            stopMusic() {
+                if (this.audio) {
+                    this.audio.pause();
+                    this.audio.currentTime = 0;
+                    this.currentTrack = null;
+                }
+            },
+
+            setVolume(vol) {
+                this.volume = Math.max(0, Math.min(1, vol));
+                if (this.audio) this.audio.volume = this.isMuted ? 0 : this.volume;
+                this.updateVolumeDisplay();
+            },
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                if (this.audio) this.audio.volume = this.isMuted ? 0 : this.volume;
+
+                const muteBtn = document.getElementById('mute-btn');
+                if (muteBtn) muteBtn.innerText = this.isMuted ? '🔇' : '🔊';
+            },
+
+            updateVolumeDisplay() {
+                const display = document.getElementById('volume-display');
+                if (display) display.innerText = Math.round(this.volume * 100) + '%';
+            }
+        };
+
+        // ============== UI MANAGER ==============
         const UI = {
             init() {
                 window.ContentLoader.init().then(() => {
@@ -717,12 +1643,50 @@
                 // Reset GameState singleton properly
                 GameState.resetInstance();
 
-                // Hide menu
+                // Hide menu, show intro sequence
                 document.getElementById('screen-main-menu').classList.remove('active');
+                this.showIntroSequence();
+            },
 
-                // Initialize fresh GameState
-                window.GameState.init();
-                this.syncScreen();
+            // ---- INTRO SEQUENCE ----
+            introStep: 0,
+            introDialogues: [
+                "Ah, a new face! Welcome to the Gilded Flagon, traveler. Word is you're looking to run an adventurer's guild, aye?",
+                "Name's Mira. I'm the keeper here. You can set up your operation in my tavern... for a modest sum of 20 gold per day, per bed you fill.",
+                "Adventurers come through these doors looking for work. Some are skilled. Some are... enthusiastic. You'll need to figure out who's worth their salt.",
+                "When you've hired your crew, you can send them out on quests from the War Table. Match the right hero to the right job, and fortune favors us all.",
+                "But enough talk. The realm awaits, Guild Master. Let's see what you're made of."
+            ],
+
+            showIntroSequence() {
+                this.introStep = 0;
+                document.getElementById('screen-intro').classList.add('active');
+                document.getElementById('intro-dialogue-text').innerText = this.introDialogues[0];
+
+                // Add click listener for advancing dialogue
+                const introScreen = document.getElementById('screen-intro');
+                introScreen.onclick = () => this.advanceIntro();
+            },
+
+            advanceIntro() {
+                this.introStep++;
+                if (this.introStep < this.introDialogues.length) {
+                    document.getElementById('intro-dialogue-text').innerText = this.introDialogues[this.introStep];
+                } else {
+                    // End intro, go to Quest Board
+                    document.getElementById('screen-intro').classList.remove('active');
+                    document.getElementById('screen-intro').onclick = null;
+
+                    // Initialize fresh GameState
+                    window.GameState.init();
+
+                    // Initialize Audio and start music
+                    AudioManager.init();
+                    AudioManager.playMusic('Hearthfire Ale.mp3');
+
+                    // Go to Quest Board first (user must accept quests before Map)
+                    this.showQuestBoard();
+                }
             },
 
             continueGame() {
@@ -731,6 +1695,669 @@
 
                 // Load GameState
                 window.GameState.init();
+                AudioManager.init();
+                AudioManager.playMusic('Hearthfire Ale.mp3');
+                this.showMap();
+            },
+
+            // --- QUEST BOARD FUNCTIONS ---
+
+            showQuestBoard() {
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById('screen-quest-board').classList.add('active');
+                document.getElementById('game-hud').style.display = 'block';
+                this.updateHUD();
+                this.renderQuestCards();
+            },
+
+            renderQuestCards() {
+                const container = document.getElementById('quest-board-cards');
+                container.innerHTML = '';
+
+                // Get available quests (max 6 to fit without scrolling)
+                const availableQuests = window.GameState.availableQuests || [];
+                const questsToShow = availableQuests.slice(0, 6);
+
+                if (questsToShow.length === 0) {
+                    container.innerHTML = '<p style="color:#aaa; text-align:center; grid-column: span 3;">No quests available today</p>';
+                    return;
+                }
+
+                questsToShow.forEach((quest, index) => {
+                    const card = this.createFlipCard(quest, index);
+                    container.appendChild(card);
+                });
+            },
+
+            createFlipCard(quest, index) {
+                const card = document.createElement('div');
+                card.className = 'flip-card';
+                card.dataset.questId = quest.id;
+
+                // Get quest icon based on type
+                const icons = {
+                    combat: '⚔️',
+                    escort: '🛡️',
+                    delivery: '📦',
+                    investigation: '🔍',
+                    crown: '👑',
+                    default: '📜'
+                };
+                const icon = icons[quest.type] || icons.default;
+
+                card.innerHTML = `
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front">
+                                <span class="quest-icon">${icon}</span>
+                                <h3>${quest.name}</h3>
+                                <span class="quest-tier">Tier ${quest.tier || 1}</span>
+                            </div>
+                            <div class="flip-card-back">
+                                <h4>${quest.name}</h4>
+                                <div class="quest-details">
+                                    <p><strong>Type:</strong> ${quest.type}</p>
+                                    <p><strong>Duration:</strong> ${quest.duration || 1} day(s)</p>
+                                    <p><strong>Reward:</strong> ${quest.reward || 50}G</p>
+                                    <p style="margin-top:5px; font-size:0.65rem; color:#555;">${quest.description || 'A quest awaits...'}</p>
+                                </div>
+                                <button class="quest-accept-btn" onclick="event.stopPropagation(); UI.acceptQuest('${quest.id}')">
+                                    ✓ Accept Quest
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                // Click to flip
+                card.addEventListener('click', () => {
+                    card.classList.toggle('flipped');
+                });
+
+                return card;
+            },
+
+            acceptQuest(questId) {
+                // Add quest to active quests
+                const quest = window.GameState.availableQuests.find(q => q.id === questId);
+                if (quest) {
+                    if (!window.GameState.acceptedQuests) window.GameState.acceptedQuests = [];
+                    window.GameState.acceptedQuests.push(quest);
+
+                    // Remove from available
+                    window.GameState.availableQuests = window.GameState.availableQuests.filter(q => q.id !== questId);
+
+                    // Re-render cards
+                    this.renderQuestCards();
+
+                    console.log(`Accepted quest: ${quest.name}`);
+                }
+            },
+
+            proceedToMap() {
+                this.showMap();
+            },
+
+            goToQuestBoard() {
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById('screen-quest-board').classList.add('active');
+                this.renderQuestCards();
+            },
+
+            // --- LOCATION-BASED MAP SYSTEM ---
+
+            // Quest location to POI mapping
+            LOCATION_MAP: {
+                'town': 'kings_keep',
+                'cliffs': 'ironhold_mines',
+                'village': 'riverbend_village',
+                'forest': 'whispering_woods',
+                'mountains': 'dragons_lair',
+                'quarry': 'stonehold_fortress',
+                'swamp': 'goblin_camp',
+                'temple': 'sunrise_citadel',
+                'castle': 'sentinel_hold'
+            },
+
+            // Map POI coordinates (matching the war_table_map.jpg)
+            MAP_POIS: {
+                'kings_keep': { x: '50%', y: '48%', name: "King's Keep" },
+                'whispering_woods': { x: '62%', y: '22%', name: 'Whispering Woods' },
+                'riverbend_village': { x: '32%', y: '30%', name: 'Riverbend Village' },
+                'sunrise_citadel': { x: '88%', y: '15%', name: 'Sunrise Citadel' },
+                'ironhold_mines': { x: '38%', y: '10%', name: 'Ironhold Mines' },
+                'dragons_lair': { x: '10%', y: '38%', name: "Dragon's Lair Cave" },
+                'sentinel_hold': { x: '15%', y: '52%', name: 'Sentinel Hold' },
+                'fey_portal': { x: '80%', y: '52%', name: 'Fey Portal' },
+                'stonehold_fortress': { x: '15%', y: '72%', name: 'Stonehold Fortress' },
+                'goblin_camp': { x: '32%', y: '82%', name: 'Goblin Camp' },
+                'riverguard_post': { x: '58%', y: '80%', name: 'Riverguard Post' },
+                'coastal_bastion': { x: '82%', y: '75%', name: 'Coastal Bastion' }
+            },
+
+            // Currently selected location and quest
+            currentLocationKey: null,
+            currentQuestId: null,
+
+            showMap() {
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById('screen-map').classList.add('active');
+                document.getElementById('game-hud').style.display = 'block';
+                this.updateHUD();
+                this.renderLocationFlags();
+                this.renderAdventurerPanel();
+                this.setupDropZone();
+                this.closeQuestListPopup();
+                this.closeQuestDetail();
+            },
+
+            // Group accepted quests by location and render flags
+            renderLocationFlags() {
+                const container = document.getElementById('location-flags-layer');
+                container.innerHTML = '';
+
+                const acceptedQuests = window.GameState.acceptedQuests || [];
+
+                // Group quests by location
+                const questsByLocation = {};
+                acceptedQuests.forEach(quest => {
+                    const location = quest.location || 'town';
+                    const poiKey = this.LOCATION_MAP[location] || 'kings_keep';
+                    if (!questsByLocation[poiKey]) {
+                        questsByLocation[poiKey] = [];
+                    }
+                    questsByLocation[poiKey].push(quest);
+                });
+
+                // Render flags for locations with quests
+                Object.keys(questsByLocation).forEach(poiKey => {
+                    const poi = this.MAP_POIS[poiKey];
+                    if (!poi) return;
+
+                    const quests = questsByLocation[poiKey];
+                    const flag = this.createLocationFlag(poiKey, poi, quests);
+                    container.appendChild(flag);
+                });
+            },
+
+            createLocationFlag(poiKey, poi, quests) {
+                const flag = document.createElement('div');
+                flag.className = 'location-flag active';
+                flag.style.left = poi.x;
+                flag.style.top = poi.y;
+                flag.dataset.locationKey = poiKey;
+
+                const count = quests.length;
+
+                flag.innerHTML = `
+                    <div class="location-flag-marker">
+                        <div class="location-flag-banner">${count}</div>
+                        <div class="location-flag-pole"></div>
+                        ${count > 1 ? `<div class="location-flag-count">${count}</div>` : ''}
+                    </div>
+                `;
+
+                // Click to show quest list
+                flag.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showLocationQuests(poiKey, quests, flag);
+                });
+
+                return flag;
+            },
+
+            // Show popup with quest list at location
+            showLocationQuests(poiKey, quests, flagElement) {
+                this.currentLocationKey = poiKey;
+                const poi = this.MAP_POIS[poiKey];
+
+                const popup = document.getElementById('quest-list-popup');
+                document.getElementById('popup-location-name').textContent = poi.name;
+
+                const listContainer = document.getElementById('popup-quest-list');
+                listContainer.innerHTML = '';
+
+                quests.forEach(quest => {
+                    const item = document.createElement('div');
+                    item.className = 'quest-list-item';
+                    item.dataset.questId = quest.id;
+
+                    const hasHero = quest.assignedHeroId != null;
+
+                    item.innerHTML = `
+                        <span class="quest-rank rank-${quest.rank || 'F'}">${quest.rank || 'F'}</span>
+                        <span class="quest-name">${quest.name}</span>
+                        ${hasHero ? '<span style="color:#4CAF50;">✓</span>' : ''}
+                    `;
+
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        this.showQuestDetail(quest);
+                    });
+
+                    listContainer.appendChild(item);
+                });
+
+                // Position popup near the flag
+                const rect = flagElement.getBoundingClientRect();
+                const mapContainer = document.getElementById('screen-map');
+                const mapRect = mapContainer.getBoundingClientRect();
+
+                popup.style.left = `${rect.left - mapRect.left + 30}px`;
+                popup.style.top = `${rect.top - mapRect.top}px`;
+                popup.classList.remove('hidden');
+
+                // Close when clicking elsewhere
+                setTimeout(() => {
+                    document.addEventListener('click', this.handleOutsideClick);
+                }, 10);
+            },
+
+            handleOutsideClick: function (e) {
+                const popup = document.getElementById('quest-list-popup');
+                const detailCard = document.getElementById('quest-detail-card');
+
+                if (!popup.contains(e.target) && !detailCard.contains(e.target) &&
+                    !e.target.closest('.location-flag')) {
+                    UI.closeQuestListPopup();
+                    UI.closeQuestDetail();
+                    document.removeEventListener('click', UI.handleOutsideClick);
+                }
+            },
+
+            closeQuestListPopup() {
+                document.getElementById('quest-list-popup').classList.add('hidden');
+            },
+
+            // Show expanded quest detail card
+            showQuestDetail(quest) {
+                this.currentQuestId = quest.id;
+
+                const card = document.getElementById('quest-detail-card');
+                const content = document.getElementById('quest-detail-content');
+                const dropZone = document.getElementById('quest-drop-zone');
+
+                content.innerHTML = `
+                    <h3 style="font-family:var(--font-display); color:#3e2723; margin:0 0 10px 0; font-size:1.1rem;">
+                        ${quest.name}
+                    </h3>
+                    <div style="display:flex; gap:15px; margin-bottom:10px;">
+                        <span style="background:#${this.getRankColor(quest.rank)}; color:white; padding:3px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold;">
+                            ${quest.rank || 'F'}
+                        </span>
+                        <span style="color:#666; font-size:0.8rem;">${quest.type || 'Quest'}</span>
+                        <span style="color:#666; font-size:0.8rem;">${quest.duration || 0} day(s)</span>
+                    </div>
+                    <p style="color:#555; font-size:0.8rem; line-height:1.4; margin:0 0 10px 0;">
+                        ${quest.description || 'A quest awaits...'}
+                    </p>
+                    <div style="background:rgba(0,0,0,0.05); padding:8px; border-radius:4px; font-size:0.8rem;">
+                        <strong>Reward:</strong> <span style="color:var(--gold);">${quest.rewards?.gold || 50}G</span>
+                    </div>
+                `;
+
+                // Check if hero is assigned
+                if (quest.assignedHeroId) {
+                    const hero = window.GameState.findHeroById(quest.assignedHeroId);
+                    if (hero) {
+                        dropZone.innerHTML = `
+                            <div class="assigned-hero-display">
+                                <span class="hero-icon">⚔️</span>
+                                <div class="hero-info">
+                                    <div class="hero-name">${hero.name}${hero.surname ? ' ' + hero.surname : ''}</div>
+                                    <div class="hero-class">${hero.className || 'Adventurer'} • Lv.${hero.level || 1}</div>
+                                </div>
+                                <button class="btn-unassign" onclick="event.stopPropagation(); UI.unassignHeroFromQuest('${quest.id}')">
+                                    ✕ Remove
+                                </button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    dropZone.innerHTML = `
+                        <p style="margin:0; color:#666; font-size:0.8rem; font-style:italic;">
+                            🎯 Drag an adventurer here to assign
+                        </p>
+                    `;
+                }
+
+                card.classList.remove('hidden');
+                this.closeQuestListPopup();
+            },
+
+            getRankColor(rank) {
+                const colors = { 'S': '9C27B0', 'A': 'F44336', 'B': 'FF9800', 'C': '4CAF50', 'D': '2196F3', 'F': '9E9E9E' };
+                return colors[rank] || '9E9E9E';
+            },
+
+            closeQuestDetail() {
+                document.getElementById('quest-detail-card').classList.add('hidden');
+                this.currentQuestId = null;
+            },
+
+            // Render adventurer panel with draggable cards
+            renderAdventurerPanel() {
+                const container = document.getElementById('adventurer-list');
+                container.innerHTML = '';
+
+                const heroes = [
+                    ...(window.GameState.roster || []),
+                    ...(window.GameState.freelancers || [])
+                ];
+
+                if (heroes.length === 0) {
+                    container.innerHTML = '<p style="color:#888; font-size:0.75rem; font-style:italic;">No adventurers hired yet</p>';
+                    return;
+                }
+
+                heroes.forEach(hero => {
+                    const isAssigned = (window.GameState.acceptedQuests || []).some(q => q.assignedHeroId === hero.id);
+                    const isAvailable = window.GameState.isHeroAvailable ? window.GameState.isHeroAvailable(hero.id) : true;
+
+                    const card = document.createElement('div');
+                    card.className = 'adventurer-card' + (isAssigned ? ' assigned' : '');
+                    card.draggable = isAvailable && !isAssigned;
+                    card.dataset.heroId = hero.id;
+
+                    card.innerHTML = `
+                        <div class="adv-name">${hero.name}${hero.surname ? ' ' + hero.surname : ''}</div>
+                        <div class="adv-class">${hero.className || 'Adventurer'}</div>
+                        <div class="adv-level">Lv.${hero.level || 1}</div>
+                        ${isAssigned ? '<div style="color:#4CAF50; font-size:0.55rem;">🎯 Assigned</div>' : ''}
+                    `;
+
+                    if (card.draggable) {
+                        card.addEventListener('dragstart', (e) => {
+                            e.dataTransfer.setData('heroId', hero.id);
+                            card.classList.add('dragging');
+                        });
+
+                        card.addEventListener('dragend', () => {
+                            card.classList.remove('dragging');
+                        });
+                    }
+
+                    container.appendChild(card);
+                });
+            },
+
+            // Setup drop zone for quest assignment
+            setupDropZone() {
+                const dropZone = document.getElementById('quest-drop-zone');
+
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+                });
+
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('drag-over');
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('drag-over');
+
+                    const heroId = e.dataTransfer.getData('heroId');
+                    if (heroId && this.currentQuestId) {
+                        this.assignHeroViaDropUI(this.currentQuestId, heroId);
+                    }
+                });
+            },
+
+            assignHeroViaDropUI(questId, heroId) {
+                const quest = (window.GameState.acceptedQuests || []).find(q => q.id === questId);
+                if (!quest) return;
+
+                const hero = window.GameState.findHeroById(heroId);
+                if (!hero) return;
+
+                // Assign
+                quest.assignedHeroId = heroId;
+                console.log(`Assigned ${hero.name} to ${quest.name}`);
+
+                // Refresh UI
+                this.renderAdventurerPanel();
+                this.renderLocationFlags();
+                this.showQuestDetail(quest);
+            },
+
+            unassignHeroFromQuest(questId) {
+                const quest = (window.GameState.acceptedQuests || []).find(q => q.id === questId);
+                if (quest) {
+                    console.log(`Unassigned hero from ${quest.name}`);
+                    quest.assignedHeroId = null;
+
+                    // Refresh UI
+                    this.renderAdventurerPanel();
+                    this.renderLocationFlags();
+                    this.showQuestDetail(quest);
+                }
+            },
+
+            // Navigate to tavern for hiring
+            goToTavern() {
+                document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                document.getElementById('screen-desk').classList.add('active');
+                this.renderDesk();
+            },
+
+            // Legacy method kept for compatibility
+            goToDesk() {
+                this.goToTavern();
+            },
+
+
+            // --- QUEST ASSIGNMENT MODAL ---
+            currentAssignQuestId: null,
+
+            showQuestAssignment(quest) {
+                this.currentAssignQuestId = quest.id;
+
+                // Update modal header with quest info
+                document.getElementById('assign-quest-name').innerHTML = `
+                        <strong>${quest.name}</strong><br>
+                        <span style="font-size:0.85rem; color:#666;">
+                            ${quest.type || 'Quest'} • ${quest.duration || 1} day(s) • ${quest.rewards?.gold || quest.reward || 50}G
+                        </span>
+                    `;
+
+                // Get available heroes (roster + freelancers who are IDLE)
+                const allHeroes = [
+                    ...(window.GameState.roster || []),
+                    ...(window.GameState.freelancers || [])
+                ];
+
+                const heroListEl = document.getElementById('assign-hero-list');
+                heroListEl.innerHTML = '';
+
+                if (allHeroes.length === 0) {
+                    heroListEl.innerHTML = `
+                            <p style="color:#888; text-align:center; padding:20px;">
+                                No heroes available.<br>
+                                <span style="font-size:0.8rem;">Hire adventurers from the Desk first!</span>
+                            </p>
+                        `;
+                } else {
+                    allHeroes.forEach(hero => {
+                        const isAvailable = window.GameState.isHeroAvailable(hero.id);
+                        const isAssignedToOther = (window.GameState.acceptedQuests || [])
+                            .some(q => q.assignedHeroId === hero.id && q.id !== quest.id);
+                        const isAssignedToThis = quest.assignedHeroId === hero.id;
+
+                        // Determine status text and style
+                        let statusText = '';
+                        let statusClass = '';
+                        if (isAssignedToThis) {
+                            statusText = '✓ Assigned to this quest';
+                            statusClass = 'color:#4a7c4e;';
+                        } else if (isAssignedToOther) {
+                            statusText = '⚔️ Assigned to another quest';
+                            statusClass = 'color:#b8860b;';
+                        } else if (!isAvailable) {
+                            statusText = `❌ ${hero.status || 'Unavailable'}`;
+                            statusClass = 'color:#8b0000;';
+                        }
+
+                        const canAssign = isAvailable && !isAssignedToOther && !isAssignedToThis;
+
+                        const heroCard = document.createElement('div');
+                        heroCard.style.cssText = `
+                                display:flex; justify-content:space-between; align-items:center;
+                                padding:10px; margin:8px 0; background:rgba(0,0,0,0.1);
+                                border-radius:4px; border:1px solid #ccc;
+                            `;
+
+                        heroCard.innerHTML = `
+                                <div>
+                                    <strong>${hero.name}${hero.surname ? ' ' + hero.surname : ''}</strong>
+                                    <div style="font-size:0.8rem; color:#666;">
+                                        ${hero.className || 'Adventurer'} • Lv.${hero.level || 1}
+                                        ${hero.hireType === 'freelance' ? ' <span style="color:#b8860b;">(Freelance)</span>' : ''}
+                                    </div>
+                                    ${statusText ? `<div style="font-size:0.75rem; ${statusClass}">${statusText}</div>` : ''}
+                                </div>
+                                <div>
+                                    ${isAssignedToThis ? `
+                                        <button class="btn" onclick="UI.unassignHeroFromQuest('${quest.id}')"
+                                            style="padding:6px 12px; background:#8b0000; font-size:0.8rem;">
+                                            Remove
+                                        </button>
+                                    ` : canAssign ? `
+                                        <button class="btn btn-green" onclick="UI.assignHeroToAcceptedQuest('${quest.id}', '${hero.id}')"
+                                            style="padding:6px 12px; font-size:0.8rem;">
+                                            Assign
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            `;
+
+                        heroListEl.appendChild(heroCard);
+                    });
+                }
+
+                // Show modal
+                document.getElementById('assign-modal').style.display = 'flex';
+            },
+
+            assignHeroToAcceptedQuest(questId, heroId) {
+                const quest = (window.GameState.acceptedQuests || []).find(q => q.id === questId);
+                if (!quest) {
+                    console.error('Quest not found:', questId);
+                    return;
+                }
+
+                const hero = window.GameState.findHeroById(heroId);
+                if (!hero) {
+                    console.error('Hero not found:', heroId);
+                    return;
+                }
+
+                // Check if hero is available
+                if (!window.GameState.isHeroAvailable(heroId)) {
+                    alert(`${hero.name} is not available (${hero.status})`);
+                    return;
+                }
+
+                // Check if hero is assigned to another accepted quest
+                const otherQuest = (window.GameState.acceptedQuests || [])
+                    .find(q => q.assignedHeroId === heroId && q.id !== questId);
+                if (otherQuest) {
+                    alert(`${hero.name} is already assigned to "${otherQuest.name}"`);
+                    return;
+                }
+
+                // Assign hero to quest
+                quest.assignedHeroId = heroId;
+                window.GameState.saveGame();
+
+                console.log(`Assigned ${hero.name} to ${quest.name}`);
+
+                // Refresh the modal to show updated state
+                this.showQuestAssignment(quest);
+
+                // Also refresh map POIs to show assignment status
+                this.renderMapPOIs();
+                this.renderAcceptedQuestsPanel();
+            },
+
+            unassignHeroFromQuest(questId) {
+                const quest = (window.GameState.acceptedQuests || []).find(q => q.id === questId);
+                if (!quest) {
+                    console.error('Quest not found:', questId);
+                    return;
+                }
+
+                quest.assignedHeroId = null;
+                window.GameState.saveGame();
+
+                console.log(`Unassigned hero from ${quest.name}`);
+
+                // Refresh the modal
+                this.showQuestAssignment(quest);
+
+                // Refresh map displays
+                this.renderMapPOIs();
+                this.renderAcceptedQuestsPanel();
+            },
+
+            closeAssignModal() {
+                document.getElementById('assign-modal').style.display = 'none';
+                this.currentAssignQuestId = null;
+            },
+
+            // Render accepted quests panel on map (shows quests you've accepted)
+            renderAcceptedQuestsPanel() {
+                const container = document.getElementById('accepted-quests-panel');
+                if (!container) return;
+
+                const accepted = window.GameState.acceptedQuests || [];
+
+                if (accepted.length === 0) {
+                    container.innerHTML = '<p style="color:#888; font-size:0.8rem;">No quests accepted yet</p>';
+                    return;
+                }
+
+                container.innerHTML = accepted.map(quest => {
+                    const hero = quest.assignedHeroId ? window.GameState.findHeroById(quest.assignedHeroId) : null;
+                    return `
+                            <div style="padding:8px; margin:5px 0; background:rgba(0,0,0,0.3); border-radius:4px; border-left:3px solid ${hero ? '#4a7c4e' : '#b8860b'};">
+                                <strong>${quest.name}</strong>
+                                <div style="font-size:0.75rem; color:#aaa;">
+                                    ${hero ? `⚔️ ${hero.name}` : '⚠️ No hero assigned'}
+                                </div>
+                                <button onclick="UI.showQuestAssignment(window.GameState.acceptedQuests.find(q => q.id === '${quest.id}'))"
+                                    style="margin-top:5px; padding:3px 8px; font-size:0.7rem; cursor:pointer;">
+                                    ${hero ? 'Change' : 'Assign Hero'}
+                                </button>
+                            </div>
+                        `;
+                }).join('');
+            },
+
+            endDayFromMap() {
+                // Move accepted quests to claimed quests for processing
+                const acceptedQuests = window.GameState.acceptedQuests || [];
+
+                // Note: In the new flow, accepted quests from the board need heroes assigned
+                // For now, add them to claimedQuests if they have assignments
+                acceptedQuests.forEach(quest => {
+                    if (quest.assignedHeroId) {
+                        window.GameState.claimedQuests.push(quest);
+                    }
+                });
+
+                // Clear accepted quests
+                window.GameState.acceptedQuests = [];
+
+                // Call endDay to process quest dispatch, pay wages, etc.
+                const result = window.GameState.endDay();
+
+                // Check for game over
+                if (result.gameOver) {
+                    this.showGameOver();
+                    return;
+                }
+
+                // Show the evening ledger
                 this.syncScreen();
             },
 
@@ -1723,6 +3350,8 @@
 
         window.onload = () => UI.init();
     </script>
+
+    </div><!-- END #game-container -->
 </body>
 
 </html>

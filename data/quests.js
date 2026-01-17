@@ -6,6 +6,9 @@ window.GAME_DATA.quests = [
         "rank": "F",
         "type": "Monster Hunt",
         "duration": 0,
+        "location": "town",
+        "client": "Marta's Tavern",
+        "description": "Old Marta's cellar has become infested with rats the size of cats. Her regulars have started complaining about the smell, and last week a rat bit a serving boy. Simple work, but someone has to do it.",
         "requirements": {
             "primary": "STR 3 OR DEX 5"
         },
@@ -31,6 +34,9 @@ window.GAME_DATA.quests = [
         "rank": "F",
         "type": "Retrieval",
         "duration": 0,
+        "location": "cliffs",
+        "client": "Healer's Guild",
+        "description": "The Healer's Guild needs Moonpetal flowers from the Cliffside meadows. The flowers only grow on dangerous ledges, but experienced climbers should have no trouble.",
         "requirements": {
             "primary": "DEX 5"
         },
@@ -60,6 +66,9 @@ window.GAME_DATA.quests = [
         "rank": "F",
         "type": "Escort",
         "duration": 1,
+        "location": "village",
+        "client": "Merchant's Guild",
+        "description": "A nervous spice merchant needs protection for his cart on the road to Millbrook. Bandits have been active lately, but the real danger is the merchant's constant complaining.",
         "requirements": {
             "primary": "VIT 5"
         },
@@ -85,6 +94,9 @@ window.GAME_DATA.quests = [
         "rank": "D",
         "type": "Monster Hunt",
         "duration": 1,
+        "location": "forest",
+        "client": "Town Council",
+        "description": "A pack of dire wolves has moved into the Howling Woods. Three shepherds have gone missing this month. The council needs them dealt with before winter drives them closer to town.",
         "requirements": {
             "primary": "STR 5 OR DEX 7"
         },
@@ -114,6 +126,9 @@ window.GAME_DATA.quests = [
         "rank": "D",
         "type": "Monster Hunt",
         "duration": 1,
+        "location": "mountains",
+        "client": "Border Garrison",
+        "description": "Goblin scouts have been spotted near the Eastern Road. The garrison commander suspects a larger warband is testing our defenses. Eliminate the patrol before they can report back.",
         "requirements": {
             "primary": "STR 6 OR INT 6"
         },
@@ -139,6 +154,9 @@ window.GAME_DATA.quests = [
         "rank": "C",
         "type": "Monster Hunt",
         "duration": 2,
+        "location": "quarry",
+        "client": "Stonecutter's Union",
+        "description": "An ancient quarry has been awakened by the miners. Stone golems now patrol the tunnels. The union's foreman begs for help - half their workers refuse to return until the constructs are destroyed.",
         "requirements": {
             "primary": "STR 7",
             "weapon": "Blunt"
@@ -169,6 +187,9 @@ window.GAME_DATA.quests = [
         "rank": "B",
         "type": "Monster Hunt",
         "duration": 2,
+        "location": "swamp",
+        "client": "Temple of Light",
+        "description": "Mother Agatha of the Blackmire has been hexing travelers and kidnapping children for her 'experiments.' The Temple wants her stopped, but warns she can charm the weak-minded.",
         "requirements": {
             "primary": "INT 7 OR VIT 8"
         },
@@ -194,6 +215,9 @@ window.GAME_DATA.quests = [
         "rank": "A",
         "type": "Monster Hunt",
         "duration": 4,
+        "location": "town",
+        "client": "Royal Mage",
+        "description": "Something from the Outer Planes has been summoned and now stalks the eastern district. Invisible, silent, and deadly. Three nobles are dead. The Royal Mage offers a bounty - but warns that killing what you cannot see requires cunning.",
         "requirements": {
             "primary": "INT 9"
         },
@@ -219,6 +243,9 @@ window.GAME_DATA.quests = [
         "rank": "S",
         "type": "Boss Hunt",
         "duration": 6,
+        "location": "mountains",
+        "client": "The Crown",
+        "description": "Scarthax the Crimson has awakened from his century-long slumber. He has already burned two villages. The Crown offers land, titles, and a small fortune to whoever can bring back his head. Many have tried. None have returned.",
         "requirements": {
             "primary": "STR 9 OR INT 9",
             "item": "Fire Immunity"
@@ -246,6 +273,9 @@ window.GAME_DATA.quests = [
         "rank": "D",
         "type": "Stealth",
         "duration": 1,
+        "location": "town",
+        "client": "City Watch",
+        "description": "A ring of pickpockets has been targeting merchants in the Market Quarter. The Watch lacks the subtlety to catch them. They need someone who can blend in and find their hideout.",
         "requirements": {
             "primary": "DEX 6"
         },
@@ -266,6 +296,9 @@ window.GAME_DATA.quests = [
         "rank": "C",
         "type": "Monster Hunt",
         "duration": 2,
+        "location": "cliffs",
+        "client": "Caravan Masters",
+        "description": "The Black Knives have been growing bold. Their camp is north of the Redstone Pass. The Caravan Masters' Guild wants them wiped out before the spring trading season.",
         "requirements": {
             "primary": "STR 6 OR DEX 7"
         },
@@ -286,6 +319,9 @@ window.GAME_DATA.quests = [
         "rank": "C",
         "type": "Escort",
         "duration": 2,
+        "location": "castle",
+        "client": "House Valmont",
+        "description": "Lady Valmont insists on traveling to her summer estate despite recent bandit activity. She requires a guard who can protect her AND tolerate her endless gossip about court intrigue.",
         "requirements": {
             "primary": "VIT 6"
         },
@@ -306,6 +342,9 @@ window.GAME_DATA.quests = [
         "rank": "C",
         "type": "Retrieval",
         "duration": 2,
+        "location": "temple",
+        "client": "Temple of Dawn",
+        "description": "The Chalice of St. Aldric was stolen decades ago. A scholar has traced it to a crypt now overrun by undead. The Temple needs someone to retrieve it before the Festival of Light.",
         "requirements": {
             "primary": "INT 5 OR DEX 6"
         },
@@ -326,6 +365,9 @@ window.GAME_DATA.quests = [
         "rank": "D",
         "type": "Monster Hunt",
         "duration": 1,
+        "location": "village",
+        "client": "Farmer's Collective",
+        "description": "Giant spiders have infested an abandoned barn. The eggs are due to hatch any day now. The farmers will lose their livestock if someone doesn't deal with it fast.",
         "requirements": {
             "primary": "VIT 5"
         },
@@ -346,6 +388,9 @@ window.GAME_DATA.quests = [
         "rank": "D",
         "type": "Retrieval",
         "duration": 1,
+        "location": "forest",
+        "client": "Archmage Thornwood",
+        "description": "My apprentice wandered into the Whispering Woods five days ago. He was looking for moonshade mushrooms. He's either very lost or very dead. Bring back either him or his spellbook.",
         "requirements": {
             "primary": "INT 5 OR DEX 5"
         },
@@ -366,6 +411,9 @@ window.GAME_DATA.quests = [
         "rank": "B",
         "type": "Retrieval",
         "duration": 3,
+        "location": "temple",
+        "client": "Inquisitor Graves",
+        "description": "The Dagger of Souls must be destroyed in the Sacred Flames of Mount Pyralis. It whispers to its carriers, tempting them to use its power. Only the strong-willed should attempt this.",
         "requirements": {
             "primary": "INT 7"
         },
@@ -386,6 +434,9 @@ window.GAME_DATA.quests = [
         "rank": "B",
         "type": "Stealth",
         "duration": 2,
+        "location": "town",
+        "client": "Anonymous",
+        "description": "A sealed letter arrived at midnight. Inside: a name, an address, and a bag of gold. The Shadow Guild doesn't explain their contracts. They just expect results. Not for the faint of heart or the morally squeamish.",
         "requirements": {
             "primary": "DEX 8"
         },
@@ -413,6 +464,7 @@ window.GAME_DATA.storyQuests = [
         rank: 'C',
         type: 'Stealth',
         duration: 1,
+        location: 'forest',
         isStoryQuest: true,
         storyIcon: '🌑',
         requiresFlag: 'cult_investigation_started',
@@ -427,6 +479,7 @@ window.GAME_DATA.storyQuests = [
         rank: 'A',
         type: 'Boss Hunt',
         duration: 3,
+        location: 'forest',
         isStoryQuest: true,
         isInteractive: true,
         storyIcon: '🩸',
@@ -442,6 +495,7 @@ window.GAME_DATA.storyQuests = [
         rank: 'B',
         type: 'Monster Hunt',
         duration: 2,
+        location: 'forest',
         isStoryQuest: true,
         storyIcon: '🌑',
         requiresFlag: 'cult_defeated',
@@ -459,6 +513,7 @@ window.GAME_DATA.storyQuests = [
         rank: 'D',
         type: 'Stealth',
         duration: 1,
+        location: 'castle',
         isStoryQuest: true,
         storyIcon: '👑',
         requiresFlag: 'noble_rumors_heard',
@@ -473,6 +528,7 @@ window.GAME_DATA.storyQuests = [
         rank: 'C',
         type: 'Retrieval',
         duration: 2,
+        location: 'castle',
         isStoryQuest: true,
         isInteractive: true,
         storyIcon: '📜',
@@ -488,6 +544,7 @@ window.GAME_DATA.storyQuests = [
         rank: 'B',
         type: 'Escort',
         duration: 2,
+        location: 'castle',
         isStoryQuest: true,
         storyIcon: '⚖️',
         requiresFlag: 'noble_evidence_gathered',
