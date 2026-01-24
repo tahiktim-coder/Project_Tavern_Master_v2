@@ -1141,7 +1141,7 @@
 
         <!-- MAP VIEW SCREEN (Assign adventurers to quests) -->
         <div id="screen-map" class="screen"
-            style="background: #1a1510 url('assets/ui/backgrounds/war_table_map.jpg') center center no-repeat; background-size: contain; padding-top:0;">
+            style="background: #1a1510 url('assets/ui/backgrounds/war_table_map.jpg') calc(50% + 100px) center no-repeat; background-size: contain; padding-top:0;">
 
             <!-- Adventurer Panel (left side) -->
             <div id="adventurer-panel"
@@ -1211,6 +1211,10 @@
                         style="font-size:0.8rem; padding:8px 12px; background:linear-gradient(to bottom, #6a5a4a, #4a3a2a); border:2px solid #3e2723; color:var(--parchment);">
                         🛡️ Guild Hall
                     </button>
+                    <button class="btn" onclick="UI.showDailyReport()"
+                        style="font-size:0.8rem; padding:8px 12px; background:linear-gradient(to bottom, #8b6914, #6b4f0f); border:2px solid #504010; color:var(--parchment);">
+                        📊 Daily Report
+                    </button>
                 </div>
 
                 <!-- Center guidance message -->
@@ -1220,13 +1224,23 @@
                     </p>
                 </div>
 
-                <!-- Right button -->
-                <div>
-                    <button class="btn" onclick="UI.endDayFromMap()"
+                <!-- Right buttons -->
+                <div style="display:flex; gap:10px;">
+                    <button class="btn" id="debug-toggle-btn" onclick="UI.toggleMapDebug()"
+                        style="font-size:0.7rem; padding:6px 10px; background:linear-gradient(to bottom, #555, #333); border:2px solid #222; color:#aaa;">
+                        🐛 Debug
+                    </button>
+                    <button class="btn" id="end-day-btn" onclick="UI.endDayFromMap()"
                         style="font-size:0.95rem; padding:10px 25px; background:linear-gradient(to bottom, #4a7c4e, #3a5c3e); border:2px solid #2d4a30; color:var(--parchment);">
                         🌙 End Day
                     </button>
                 </div>
+            </div>
+
+            <!-- Debug Overlay (hidden by default) -->
+            <div id="map-debug-overlay" class="hidden"
+                style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1000;">
+                <!-- POI markers and labels will be inserted by JS -->
             </div>
         </div>
     </div>
@@ -1543,6 +1557,45 @@
         </div>
     </div>
 
+    <!-- DAILY REPORT MODAL -->
+    <div id="daily-report-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; overflow:hidden;">
+        <div class="quest-scroll"
+            style="width: 600px; height: auto; max-height:80vh; overflow-y:auto; overflow-x:hidden; cursor:default;">
+            <h2 style="font-family: var(--font-display); margin-bottom:15px;">📊 Daily Report</h2>
+
+            <!-- Quest Results Section -->
+            <div id="daily-report-quests" style="margin-bottom:20px;">
+                <h3 style="font-size:1rem; color:var(--gold); border-bottom:1px solid #5c4a3a; padding-bottom:5px;">⚔️
+                    Quest Returns</h3>
+                <div id="daily-report-quest-list" style="margin-top:10px;">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Gold Flow Section -->
+            <div id="daily-report-gold" style="margin-bottom:20px;">
+                <h3 style="font-size:1rem; color:var(--gold); border-bottom:1px solid #5c4a3a; padding-bottom:5px;">💰
+                    Gold Flow</h3>
+                <div id="daily-report-gold-list" style="margin-top:10px;">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <!-- Hero Status Section -->
+            <div id="daily-report-heroes" style="margin-bottom:20px;">
+                <h3 style="font-size:1rem; color:var(--gold); border-bottom:1px solid #5c4a3a; padding-bottom:5px;">🛡️
+                    Hero Status</h3>
+                <div id="daily-report-hero-list" style="margin-top:10px;">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+
+            <button class="btn" onclick="UI.closeDailyReport()"
+                style="margin-top:15px; width:100%; background:linear-gradient(to bottom, #555, #333); border-color:#666;">Close</button>
+        </div>
+    </div>
+
     <!-- SCREEN 4: EVENING REPORT -->
     <div id="screen-evening" class="screen wood-bg">
         <div class="header-bar">
@@ -1853,20 +1906,21 @@
                 'castle': 'sentinel_hold'
             },
 
-            // Map POI coordinates (matching the war_table_map.jpg)
+            // Map POI coordinates (precisely aligned to map features)
+            // The map uses: background-position: calc(50% + 100px) center
             MAP_POIS: {
-                'kings_keep': { x: '50%', y: '48%', name: "King's Keep" },
-                'whispering_woods': { x: '62%', y: '22%', name: 'Whispering Woods' },
-                'riverbend_village': { x: '32%', y: '30%', name: 'Riverbend Village' },
-                'sunrise_citadel': { x: '88%', y: '15%', name: 'Sunrise Citadel' },
-                'ironhold_mines': { x: '38%', y: '10%', name: 'Ironhold Mines' },
-                'dragons_lair': { x: '10%', y: '38%', name: "Dragon's Lair Cave" },
-                'sentinel_hold': { x: '15%', y: '52%', name: 'Sentinel Hold' },
-                'fey_portal': { x: '80%', y: '52%', name: 'Fey Portal' },
-                'stonehold_fortress': { x: '15%', y: '72%', name: 'Stonehold Fortress' },
-                'goblin_camp': { x: '32%', y: '82%', name: 'Goblin Camp' },
-                'riverguard_post': { x: '58%', y: '80%', name: 'Riverguard Post' },
-                'coastal_bastion': { x: '82%', y: '75%', name: 'Coastal Bastion' }
+                'kings_keep': { x: '57%', y: '50%', name: "King's Keep" },
+                'whispering_woods': { x: '68%', y: '32%', name: 'Whispering Woods' },
+                'riverbend_village': { x: '48%', y: '28%', name: 'Riverbend Village' },
+                'sunrise_citadel': { x: '92%', y: '18%', name: 'Sunrise Citadel' },
+                'ironhold_mines': { x: '57%', y: '15%', name: 'Ironhold Mines' },
+                'dragons_lair': { x: '26%', y: '40%', name: "Dragon's Lair Cave" },
+                'sentinel_hold': { x: '33%', y: '55%', name: 'Sentinel Hold' },
+                'fey_portal': { x: '81%', y: '50%', name: 'Fey Portal' },
+                'stonehold_fortress': { x: '37%', y: '75%', name: 'Stonehold Fortress' },
+                'goblin_camp': { x: '47%', y: '85%', name: 'Goblin Camp' },
+                'riverguard_post': { x: '60%', y: '80%', name: 'Riverguard Post' },
+                'coastal_bastion': { x: '86%', y: '72%', name: 'Coastal Bastion' }
             },
 
             // Currently selected location and quest
@@ -2039,6 +2093,91 @@
                 document.getElementById('quest-list-popup').classList.add('hidden');
             },
 
+            // Debug mode state
+            debugModeActive: false,
+
+            // Toggle debug mode to visualize map POI positions
+            toggleMapDebug() {
+                this.debugModeActive = !this.debugModeActive;
+                const overlay = document.getElementById('map-debug-overlay');
+                const btn = document.getElementById('debug-toggle-btn');
+
+                if (this.debugModeActive) {
+                    overlay.classList.remove('hidden');
+                    btn.style.background = 'linear-gradient(to bottom, #c62828, #8b0000)';
+                    btn.style.color = '#fff';
+                    this.renderDebugOverlay();
+                } else {
+                    overlay.classList.add('hidden');
+                    btn.style.background = 'linear-gradient(to bottom, #555, #333)';
+                    btn.style.color = '#aaa';
+                }
+            },
+
+            // Render debug markers for all map POIs
+            renderDebugOverlay() {
+                const overlay = document.getElementById('map-debug-overlay');
+                overlay.innerHTML = '';
+
+                // Add info panel at top
+                const infoPanel = document.createElement('div');
+                infoPanel.style.cssText = 'position:absolute; top:65px; right:10px; background:rgba(0,0,0,0.9); border:2px solid #c62828; border-radius:6px; padding:10px; max-width:280px; font-size:0.7rem; color:#fff; z-index:1001;';
+                infoPanel.innerHTML = `
+                    <div style="color:#c62828; font-weight:bold; margin-bottom:8px;">🐛 MAP DEBUG INFO</div>
+                    <div style="margin-bottom:5px;"><strong>Container:</strong> 1280x720px fixed</div>
+                    <div style="margin-bottom:5px;"><strong>Map BG:</strong> contain, offset 50%+100px</div>
+                    <div style="margin-bottom:10px;"><strong>Flags Layer:</strong> 100% x 100%</div>
+                    <div style="color:#ffcc00; font-size:0.65rem;">⚠️ Flags use % of screen, not map image</div>
+                `;
+                overlay.appendChild(infoPanel);
+
+                // Add crosshairs at adjusted map center (shifted 100px right for map offset)
+                const centerCross = document.createElement('div');
+                centerCross.style.cssText = 'position:absolute; left:calc(50% + 50px); top:48%; width:40px; height:40px; transform:translate(-50%,-50%); border:2px dashed #00ff00; border-radius:50%;';
+                overlay.appendChild(centerCross);
+                const centerLabel = document.createElement('div');
+                centerLabel.style.cssText = 'position:absolute; left:calc(50% + 50px); top:calc(48% + 25px); transform:translateX(-50%); background:rgba(0,255,0,0.8); color:#000; font-size:0.6rem; padding:2px 6px; border-radius:3px; white-space:nowrap;';
+                centerLabel.textContent = 'Map Center (adjusted)';
+                overlay.appendChild(centerLabel);
+
+                // Render a marker for each POI
+                Object.entries(this.MAP_POIS).forEach(([key, poi]) => {
+                    const marker = document.createElement('div');
+                    marker.style.cssText = `
+                        position: absolute;
+                        left: ${poi.x};
+                        top: ${poi.y};
+                        transform: translate(-50%, -50%);
+                    `;
+
+                    // Create visible dot
+                    const dot = document.createElement('div');
+                    dot.style.cssText = 'width:12px; height:12px; background:#c62828; border:2px solid #fff; border-radius:50%; box-shadow:0 0 8px rgba(198,40,40,0.8);';
+                    marker.appendChild(dot);
+
+                    // Create label with coordinates
+                    const label = document.createElement('div');
+                    label.style.cssText = 'position:absolute; left:18px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.9); color:#fff; font-size:0.55rem; padding:3px 6px; border-radius:3px; white-space:nowrap; border:1px solid #c62828;';
+                    label.innerHTML = `<strong>${poi.name}</strong><br>${poi.x}, ${poi.y}`;
+                    marker.appendChild(label);
+
+                    overlay.appendChild(marker);
+                });
+
+                // Add estimated map bounds (height reduced to fit visible map area)
+                // Map image is centered at calc(50% + 100px), visible area adjusted for HUD
+                const mapBounds = document.createElement('div');
+                mapBounds.style.cssText = 'position:absolute; left:calc(50% + 100px - 460px); top:calc(50% - 300px); width:920px; height:600px; border:3px dashed #ffcc00; border-radius:4px;';
+                overlay.appendChild(mapBounds);
+                const boundsLabel = document.createElement('div');
+                boundsLabel.style.cssText = 'position:absolute; left:calc(50% + 100px - 460px); top:calc(50% - 300px - 20px); background:rgba(255,204,0,0.9); color:#000; font-size:0.6rem; padding:2px 8px; border-radius:3px; font-weight:bold;';
+                boundsLabel.textContent = 'Estimated Map Image Bounds';
+                overlay.appendChild(boundsLabel);
+
+                console.log('[DEBUG] Map POI Positions:', this.MAP_POIS);
+                console.log('[DEBUG] Location Mapping:', this.LOCATION_MAP);
+            },
+
             // Show expanded quest detail card
             showQuestDetail(quest) {
                 this.currentQuestId = quest.id;
@@ -2123,17 +2262,34 @@
                 heroes.forEach(hero => {
                     const isAssigned = (window.GameState.acceptedQuests || []).some(q => q.assignedHeroId === hero.id);
                     const isAvailable = window.GameState.isHeroAvailable ? window.GameState.isHeroAvailable(hero.id) : true;
+                    const isOnQuest = hero.status === 'ON_QUEST';
+                    const isInjured = hero.status === 'INJURED';
 
                     const card = document.createElement('div');
-                    card.className = 'adventurer-card' + (isAssigned ? ' assigned' : '');
+                    card.className = 'adventurer-card' + (isAssigned ? ' assigned' : '') + (!isAvailable ? ' unavailable' : '');
                     card.draggable = isAvailable && !isAssigned;
                     card.dataset.heroId = hero.id;
+
+                    // Dim unavailable heroes
+                    if (!isAvailable) {
+                        card.style.opacity = '0.5';
+                    }
+
+                    // Build status indicator
+                    let statusHtml = '';
+                    if (isOnQuest) {
+                        statusHtml = `<div style="color:#ff9800; font-size:0.55rem;">⚔️ On Quest</div>`;
+                    } else if (isInjured) {
+                        statusHtml = `<div style="color:#f44336; font-size:0.55rem;">🩹 Injured</div>`;
+                    } else if (isAssigned) {
+                        statusHtml = `<div style="color:#4CAF50; font-size:0.55rem;">🎯 Assigned</div>`;
+                    }
 
                     card.innerHTML = `
                         <div class="adv-name">${hero.name}${hero.surname ? ' ' + hero.surname : ''}</div>
                         <div class="adv-class">${hero.className || 'Adventurer'}</div>
                         <div class="adv-level">Lv.${hero.level || 1}</div>
-                        ${isAssigned ? '<div style="color:#4CAF50; font-size:0.55rem;">🎯 Assigned</div>' : ''}
+                        ${statusHtml}
                     `;
 
                     if (card.draggable) {
@@ -2256,8 +2412,41 @@
                 const isAssigned = (window.GameState.acceptedQuests || []).some(q => q.assignedHeroId === hero.id);
                 const assignedQuest = (window.GameState.acceptedQuests || []).find(q => q.assignedHeroId === hero.id);
 
+                // Check hero status for proper display
+                const isOnQuest = hero.status === 'ON_QUEST';
+                const isInjured = hero.status === 'INJURED';
+                const isUnavailable = isOnQuest || isInjured;
+
+                // Determine status display
+                let statusHtml = '';
+                if (isOnQuest) {
+                    statusHtml = `
+                        <div style="margin-top:5px; padding:4px; background:rgba(255,152,0,0.2); border-radius:3px; font-size:0.65rem; color:#ff9800;">
+                            ⚔️ On Quest ${hero.busyUntilDay ? `(returns Day ${hero.busyUntilDay})` : ''}
+                        </div>
+                    `;
+                } else if (isInjured) {
+                    statusHtml = `
+                        <div style="margin-top:5px; padding:4px; background:rgba(244,67,54,0.2); border-radius:3px; font-size:0.65rem; color:#f44336;">
+                            🩹 Injured ${hero.busyUntilDay ? `(recovers Day ${hero.busyUntilDay})` : ''}
+                        </div>
+                    `;
+                } else if (isAssigned) {
+                    statusHtml = `
+                        <div style="margin-top:5px; padding:4px; background:rgba(76,175,80,0.2); border-radius:3px; font-size:0.65rem; color:#4CAF50;">
+                            🎯 Assigned: ${assignedQuest?.name || 'Quest'}
+                        </div>
+                    `;
+                } else {
+                    statusHtml = `
+                        <div style="margin-top:5px; font-size:0.65rem; color:#888; font-style:italic;">
+                            Available for assignment
+                        </div>
+                    `;
+                }
+
                 return `
-                    <div style="background:rgba(0,0,0,0.2); border:1px solid #555; border-radius:4px; padding:8px; margin-bottom:8px;">
+                    <div style="background:rgba(0,0,0,0.2); border:1px solid #555; border-radius:4px; padding:8px; margin-bottom:8px; ${isUnavailable ? 'opacity:0.6;' : ''}">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
                                 <strong style="color:var(--parchment); font-size:0.85rem;">${hero.name}${hero.surname ? ' ' + hero.surname : ''}</strong>
@@ -2269,15 +2458,7 @@
                                 ${hireType === 'fulltime' ? '⭐' : '🤝'}
                             </span>
                         </div>
-                        ${isAssigned ? `
-                            <div style="margin-top:5px; padding:4px; background:rgba(76,175,80,0.2); border-radius:3px; font-size:0.65rem; color:#4CAF50;">
-                                🎯 Assigned: ${assignedQuest?.name || 'Quest'}
-                            </div>
-                        ` : `
-                            <div style="margin-top:5px; font-size:0.65rem; color:#888; font-style:italic;">
-                                Available for assignment
-                            </div>
-                        `}
+                        ${statusHtml}
                     </div>
                 `;
             },
@@ -2493,8 +2674,141 @@
                     return;
                 }
 
-                // Show the evening ledger
-                this.syncScreen();
+                // Blackout transition - "falling asleep"
+                this.showSleepTransition();
+            },
+
+            // Sleep transition - blackout fade then next day
+            showSleepTransition() {
+                // Create overlay for blackout
+                let overlay = document.getElementById('sleep-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'sleep-overlay';
+                    overlay.style.cssText = `
+                        position: fixed;
+                        top: 0; left: 0; right: 0; bottom: 0;
+                        background: black;
+                        opacity: 0;
+                        z-index: 9999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: opacity 1s ease-in-out;
+                    `;
+                    overlay.innerHTML = `
+                        <div style="color: #888; font-family: var(--font-display); font-size: 1.5rem; opacity: 0; transition: opacity 0.5s ease-in-out 0.5s;" id="sleep-text">
+                            💤 You drift off to sleep...
+                        </div>
+                    `;
+                    document.body.appendChild(overlay);
+                }
+
+                // Fade to black
+                overlay.style.display = 'flex';
+                overlay.style.opacity = '0';
+
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                    document.getElementById('sleep-text').style.opacity = '1';
+                }, 50);
+
+                // After full black, advance to next day
+                setTimeout(() => {
+                    window.GameState.nextDay();
+                    this.updateHUD();
+
+                    // Change text
+                    document.getElementById('sleep-text').innerHTML = `☀️ Day ${window.GameState.day} begins...`;
+
+                    // Fade out after a moment
+                    setTimeout(() => {
+                        overlay.style.opacity = '0';
+                        document.getElementById('sleep-text').style.opacity = '0';
+
+                        setTimeout(() => {
+                            overlay.style.display = 'none';
+                            this.showMap(); // Back to map for new day
+                        }, 1000);
+                    }, 1500);
+                }, 2000);
+            },
+
+            // --- DAILY REPORT ---
+
+            showDailyReport() {
+                const modal = document.getElementById('daily-report-modal');
+                modal.style.display = 'flex';
+
+                // Get today's data from dailyLog
+                const log = window.GameState.dailyLog || {};
+                const questResults = log.questResults || log.questReports || [];
+                const income = log.income || [];
+                const expenses = log.expenses || [];
+
+                // Render Quest Returns
+                const questList = document.getElementById('daily-report-quest-list');
+                if (questResults.length === 0) {
+                    questList.innerHTML = '<p style="color:#5c4a3a; font-style:italic;">No quests returned today.</p>';
+                } else {
+                    questList.innerHTML = questResults.map(result => `
+                        <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:5px; margin-bottom:8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong>${result.name || result.questName}</strong>
+                                <span style="color:${result.success ? '#4CAF50' : '#f44336'}; font-weight:bold;">
+                                    ${result.outcome || (result.success ? 'Success' : 'Failed')}
+                                </span>
+                            </div>
+                            <div style="font-size:0.85rem; color:#6d5c4d; margin-top:5px;">
+                                ${result.heroName} • ${result.reward || result.goldEarned || 0}G earned
+                            </div>
+                            ${result.story ? `<div style="font-size:0.8rem; color:#5c4a3a; margin-top:5px; font-style:italic;">"${result.story}"</div>` : ''}
+                        </div>
+                    `).join('');
+                }
+
+                // Render Gold Flow
+                const goldList = document.getElementById('daily-report-gold-list');
+                const goldItems = [
+                    ...income.map(i => ({ ...i, type: 'income' })),
+                    ...expenses.map(e => ({ ...e, type: 'expense' }))
+                ];
+
+                if (goldItems.length === 0) {
+                    goldList.innerHTML = '<p style="color:#5c4a3a; font-style:italic;">No gold transactions today.</p>';
+                } else {
+                    goldList.innerHTML = goldItems.map(item => `
+                        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(92,74,58,0.3);">
+                            <span>${item.source}</span>
+                            <span style="color:${item.type === 'income' ? '#4CAF50' : '#f44336'};">
+                                ${item.type === 'income' ? '+' : '-'}${item.amount}G
+                            </span>
+                        </div>
+                    `).join('');
+                }
+
+                // Render Hero Status
+                const heroList = document.getElementById('daily-report-hero-list');
+                const allHeroes = [...(window.GameState.roster || []), ...(window.GameState.freelancers || [])];
+                const statusChanges = allHeroes.filter(h => h.status === 'INJURED' || h.status === 'ON_QUEST');
+
+                if (statusChanges.length === 0) {
+                    heroList.innerHTML = '<p style="color:#5c4a3a; font-style:italic;">All heroes are idle and ready.</p>';
+                } else {
+                    heroList.innerHTML = statusChanges.map(hero => `
+                        <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(92,74,58,0.3);">
+                            <span>${hero.name}</span>
+                            <span style="color:${hero.status === 'INJURED' ? '#f44336' : '#ff9800'};">
+                                ${hero.status === 'INJURED' ? '🩹 Recovering' : '⚔️ On Quest'}
+                                ${hero.busyUntilDay ? ` (until Day ${hero.busyUntilDay})` : ''}
+                            </span>
+                        </div>
+                    `).join('');
+                }
+            },
+
+            closeDailyReport() {
+                document.getElementById('daily-report-modal').style.display = 'none';
             },
 
             // --- NAVIGATION & PHASE CONTROL ---

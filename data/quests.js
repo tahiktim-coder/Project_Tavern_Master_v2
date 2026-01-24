@@ -1,11 +1,93 @@
 window.GAME_DATA = window.GAME_DATA || {};
 window.GAME_DATA.quests = [
+    // ========================================
+    // QUEST CHAIN: The Goblin Invasion
+    // ========================================
+    {
+        "id": "chain_goblin_1",
+        "name": "Goblin Scouts Spotted",
+        "rank": "F",
+        "type": "Monster Hunt",
+        "duration": 1,
+        "location": "forest",
+        "client": "Village Elder",
+        "description": "Farmers near the forest edge have spotted goblin scouts lurking in the treeline. This is unusual—goblins rarely venture this close to town. Someone should investigate before they grow bolder.",
+        "chainId": "goblin_invasion",
+        "chainOrder": 1,
+        "prerequisiteQuestId": null,
+        "noExpiry": true,
+        "requirements": {
+            "primary": "STR 3 OR DEX 4"
+        },
+        "rewards": {
+            "gold": 25,
+            "xp": 15,
+            "rep": 1
+        },
+        "modifiers": []
+    },
+    {
+        "id": "chain_goblin_2",
+        "name": "Raid the Goblin Camp",
+        "rank": "D",
+        "type": "Monster Hunt",
+        "duration": 1,
+        "location": "forest",
+        "client": "Village Elder",
+        "description": "The scout you captured revealed the location of a goblin camp. They're gathering supplies for something big. Strike now before they're ready!",
+        "chainId": "goblin_invasion",
+        "chainOrder": 2,
+        "prerequisiteQuestId": "chain_goblin_1",
+        "unlockDelay": 1,
+        "noExpiry": true,
+        "requirements": {
+            "primary": "STR 5 AND VIT 4"
+        },
+        "rewards": {
+            "gold": 60,
+            "xp": 30,
+            "rep": 2
+        },
+        "modifiers": [
+            { "condition": "Group of 2+", "value": 20 }
+        ]
+    },
+    {
+        "id": "chain_goblin_3",
+        "name": "Slay the Goblin King",
+        "rank": "C",
+        "type": "Boss Hunt",
+        "duration": 1,
+        "location": "cave",
+        "client": "Village Elder",
+        "description": "The goblin camp raid uncovered their true leader—a massive Goblin King hiding in the deep caves. End this threat once and for all!",
+        "chainId": "goblin_invasion",
+        "chainOrder": 3,
+        "prerequisiteQuestId": "chain_goblin_2",
+        "unlockDelay": 1,
+        "noExpiry": true,
+        "requirements": {
+            "primary": "STR 7 AND VIT 6"
+        },
+        "rewards": {
+            "gold": 150,
+            "xp": 75,
+            "rep": 5
+        },
+        "modifiers": [
+            { "condition": "Legendary Weapon", "value": 30 },
+            { "condition": "Warrior Class", "value": 15 }
+        ]
+    },
+    // ========================================
+    // END QUEST CHAIN: The Goblin Invasion
+    // ========================================
     {
         "id": "quest_rats_001",
         "name": "Rats in the Cellar",
         "rank": "F",
         "type": "Monster Hunt",
-        "duration": 0,
+        "duration": 1,
         "location": "town",
         "client": "Marta's Tavern",
         "description": "Old Marta's cellar has become infested with rats the size of cats. Her regulars have started complaining about the smell, and last week a rat bit a serving boy. Simple work, but someone has to do it.",
@@ -33,7 +115,7 @@ window.GAME_DATA.quests = [
         "name": "Herb Gathering",
         "rank": "F",
         "type": "Retrieval",
-        "duration": 0,
+        "duration": 1,
         "location": "cliffs",
         "client": "Healer's Guild",
         "description": "The Healer's Guild needs Moonpetal flowers from the Cliffside meadows. The flowers only grow on dangerous ledges, but experienced climbers should have no trouble.",

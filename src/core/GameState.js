@@ -42,8 +42,10 @@ class GameState {
         // Memorial - Wall of the Fallen
         this.memorial = [];       // Array of { name, className, level, deathDay, questName, howDied }
 
-        // Story Quest Tracking
-        this.completedStoryQuests = [];  // IDs of completed story quests
+        // Quest Chain Tracking
+        this.completedQuests = [];        // Array of { questId, day, outcome, chainId? }
+        this.scheduledChainQuests = [];   // Array of { questId, unlockDay } - chain quests waiting to appear
+        this.completedStoryQuests = [];   // IDs of completed story quests (legacy)
         this.activeQuestProgress = null; // Current interactive quest progress event to show
     }
 
@@ -242,6 +244,22 @@ class GameState {
                 reward: result.goldEarned,
                 story: result.story
             });
+
+            // === QUEST CHAIN TRACKING ===
+            const wasSuccess = result.outcome === 'LEGENDARY' || result.outcome === 'GREAT' || result.outcome === 'SUCCESS';
+
+            // Record completed quest
+            this.completedQuests.push({
+                questId: quest.id,
+                day: this.day,
+                outcome: wasSuccess ? 'success' : 'failure',
+                chainId: quest.chainId || null
+            });
+
+            // Check for chain quest unlocks (only on success)
+            if (wasSuccess) {
+                this.checkChainQuestUnlocks(quest.id);
+            }
         });
 
         // Remove processed quests from active
@@ -376,6 +394,62 @@ class GameState {
     }
 
     // =========================================================
+    // QUEST CHAIN SYSTEM
+    // =========================================================
+
+    /**
+     * Check if completing a quest unlocks any chain quests
+     */
+    checkChainQuestUnlocks(completedQuestId) {
+        const allQuests = window.GAME_DATA?.quests || [];
+
+        // Find quests that have this quest as a prerequisite
+        const chainQuests = allQuests.filter(q => q.prerequisiteQuestId === completedQuestId);
+
+        chainQuests.forEach(chainQuest => {
+            // Check if already scheduled, completed, or active
+            const alreadyScheduled = this.scheduledChainQuests.some(s => s.questId === chainQuest.id);
+            const alreadyCompleted = this.completedQuests.some(c => c.questId === chainQuest.id);
+            const alreadyActive = this.activeQuests.some(q => q.id === chainQuest.id);
+            const alreadyAvailable = this.availableQuests.some(q => q.id === chainQuest.id);
+            const alreadyAccepted = this.acceptedQuests?.some(q => q.id === chainQuest.id);
+
+            if (alreadyScheduled || alreadyCompleted || alreadyActive || alreadyAvailable || alreadyAccepted) {
+                return;
+            }
+
+            // Schedule for unlock
+            const unlockDay = this.day + (chainQuest.unlockDelay || 1);
+            this.scheduledChainQuests.push({
+                questId: chainQuest.id,
+                unlockDay: unlockDay
+            });
+
+            console.log(`🔗 Chain quest "${chainQuest.name}" scheduled to unlock on Day ${unlockDay}`);
+        });
+    }
+
+    /**
+     * Add scheduled chain quests that should unlock today to available quests
+     */
+    injectScheduledChainQuests() {
+        const allQuests = window.GAME_DATA?.quests || [];
+        const toUnlock = this.scheduledChainQuests.filter(s => s.unlockDay <= this.day);
+
+        toUnlock.forEach(scheduled => {
+            const quest = allQuests.find(q => q.id === scheduled.questId);
+            if (quest && !this.availableQuests.some(q => q.id === quest.id)) {
+                // Add chain quest at the front (priority) - use clean copy to avoid mutations
+                this.availableQuests.unshift(this.cleanQuestCopy(quest));
+                console.log(`📜 Chain quest unlocked: ${quest.name}`);
+            }
+        });
+
+        // Remove unlocked quests from scheduled
+        this.scheduledChainQuests = this.scheduledChainQuests.filter(s => s.unlockDay > this.day);
+    }
+
+    // =========================================================
     // ACTIONS
     // =========================================================
 
@@ -499,7 +573,8 @@ class GameState {
             // Quests: random selection, excluding any already in play
             const allQuests = window.GAME_DATA.quests || [];
             const availablePool = allQuests.filter(q => !inPlayQuestIds.includes(q.id));
-            this.availableQuests = this.getRandomSubset(availablePool, 4);
+            // Use cleanQuestCopy to avoid mutating templates
+            this.availableQuests = this.getRandomSubset(availablePool, 4).map(q => this.cleanQuestCopy(q));
 
             // === STORY QUEST INJECTION ===
             // Check if any story quests should appear based on flags
@@ -519,8 +594,12 @@ class GameState {
 
                 // Add to available quests at the front (priority)
                 console.log(`📜 Story Quest Unlocked: ${sq.name}`);
-                this.availableQuests.unshift({ ...sq });
+                this.availableQuests.unshift(this.cleanQuestCopy(sq));
             });
+
+            // === CHAIN QUEST INJECTION ===
+            // Add any scheduled chain quests that should unlock today
+            this.injectScheduledChainQuests();
 
             // === PRE-GENERATED "SPECIAL" CHARACTERS ===
             const allChars = window.GAME_DATA.characters || [];
@@ -611,6 +690,21 @@ class GameState {
         return shuffled.slice(0, count);
     }
 
+    /**
+     * Create a clean copy of a quest template for use in availableQuests
+     * This ensures we don't mutate the original template when assigning heroes
+     */
+    cleanQuestCopy(questTemplate) {
+        return {
+            ...questTemplate,
+            // Reset instance-specific fields
+            assignedHeroId: null,
+            startedDay: null,
+            returnDay: null,
+            progressData: null
+        };
+    }
+
     // =========================================================
     // MEMORIAL / DEATH MATTERS
     // =========================================================
@@ -694,9 +788,12 @@ class GameState {
             availableHires: this.availableHires,
             morningEvent: this.morningEvent,
             memorial: this.memorial,
+            completedQuests: this.completedQuests,
+            scheduledChainQuests: this.scheduledChainQuests,
             completedStoryQuests: this.completedStoryQuests,
             activeQuestProgress: this.activeQuestProgress,
-            choiceEventData: window.ChoiceEventSystem?.getSaveData() || null
+            choiceEventData: window.ChoiceEventSystem?.getSaveData() || null,
+            dailyLog: this.dailyLog // Save the daily log so reports persist on reload
         };
         localStorage.setItem('TGM_Save', JSON.stringify(data));
         console.log("Game Saved.");
@@ -720,8 +817,22 @@ class GameState {
                 this.availableHires = data.availableHires || [];
                 this.morningEvent = data.morningEvent || null;
                 this.memorial = data.memorial || [];
+                this.completedQuests = data.completedQuests || [];
+                this.scheduledChainQuests = data.scheduledChainQuests || [];
                 this.completedStoryQuests = data.completedStoryQuests || [];
                 this.activeQuestProgress = data.activeQuestProgress || null;
+
+                // Load daily log or initialize default
+                this.dailyLog = data.dailyLog || {
+                    income: [],
+                    expenses: [],
+                    questReports: [],
+                    questResults: [],
+                    events: [],
+                    pendingVigils: []
+                };
+
+                // Load event system data
 
                 // Load choice event system data
                 if (data.choiceEventData && window.ChoiceEventSystem) {
